@@ -598,7 +598,7 @@ export const en = {
       blockchain: {
         blockchain: "Blockchain",
         heading: "PeerPlays Blockchain",
-        current_block: "Current Block",
+        current_block_height: "Current Block Height",
         last_irreversible_block: "Last irreversible block",
         supply: "Supply (%(symbol)s)",
         active_witness: "Active Witness",

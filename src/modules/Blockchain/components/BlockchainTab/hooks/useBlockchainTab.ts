@@ -22,7 +22,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
   const [loading, setLoading] = useState<boolean>(true);
   const [searchDataSource, setSearchDataSource] = useState<DataTableRow[]>([]);
   const [blockchainTableRows, setDataTableRows] = useState<DataTableRow[]>();
-  const [currentBlock, setCurrentBlock] = useState<number>(0);
+  const [currentBlockHeight, setCurrentBlockHeight] = useState<number>(0);
   const [lastIrreversibleBlock, setLastIrreversibleBlock] =
     useState<string>("");
   const [avgTime, setAvgTime] = useState<number>(0);
@@ -31,7 +31,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
     symbol: "TEST",
   });
   const [blockchainStats, setBlockchainStats] = useState<BlockchainStats>({
-    currentBlock: [],
+    currentBlockHeight: [],
     lastIrreversible: [],
     avgTime: [],
     supply: [],
@@ -92,7 +92,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
         );
         return {
           blockRows,
-          currentBlock: dgpo.head_block_number,
+          currentBlockHeight: dgpo.head_block_number,
           lastIrreversibleBlock:
             dgpo.last_irreversible_block_num +
             " (-" +
@@ -104,8 +104,8 @@ export function useBlockchainTab(): UseBlockchainTabResult {
             symbol: defaultAsset.symbol,
           },
           blockchainStats: {
-            currentBlock: updateArrayWithLimit(
-              blockchainStats.currentBlock,
+            currentBlockHeight: updateArrayWithLimit(
+              blockchainStats.currentBlockHeight,
               dgpo.head_block_number,
               99
             ),
@@ -150,7 +150,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
         setBlockColumns(updatedColumns);
         setDataTableRows(blockData.blockRows);
         setSearchDataSource(blockData.blockRows);
-        setCurrentBlock(blockData.currentBlock);
+        setCurrentBlockHeight(blockData.currentBlockHeight);
         setLastIrreversibleBlock(blockData.lastIrreversibleBlock);
         setAvgTime(blockData.avgTime);
         setSupply(blockData.supply);
@@ -171,7 +171,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
     setBlockColumns,
     setDataTableRows,
     setSearchDataSource,
-    setCurrentBlock,
+    setCurrentBlockHeight,
     setLastIrreversibleBlock,
     setAvgTime,
     setSupply,
@@ -184,7 +184,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
     blockColumns,
     blockchainTableRows,
     blockchainStats,
-    currentBlock,
+    currentBlockHeight,
     lastIrreversibleBlock,
     avgTime,
     supply,

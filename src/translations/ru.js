@@ -599,7 +599,7 @@ export const ru = {
       blockchain: {
         blockchain: "Блокчейн",
         heading: "Блокчейн PeerPlays",
-        current_block: "Текущий блок",
+        current_block_height: "Текущий блок высота",
         last_irreversible_block: "Последний необратимый блок",
         supply: "Поставлять (%(symbol)s)",
         active_witness: "Активный свидетель",

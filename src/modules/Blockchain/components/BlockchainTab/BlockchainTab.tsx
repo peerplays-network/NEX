@@ -23,7 +23,7 @@ export const BlockchainTab = (): JSX.Element => {
     blockColumns,
     blockchainTableRows,
     blockchainStats,
-    currentBlock,
+    currentBlockHeight,
     lastIrreversibleBlock,
     avgTime,
     supply,
@@ -92,10 +92,12 @@ export const BlockchainTab = (): JSX.Element => {
     <Styled.BlockTabWrapper>
       <Styled.StatsCardsDeck>
         <StatsCard
-          noData={currentBlock === 0}
-          title={counterpart.translate(`pages.blocks.blockchain.current_block`)}
-          data={`${currentBlock}`}
-          statsData={blockchainStats.currentBlock}
+          noData={currentBlockHeight === 0}
+          title={counterpart.translate(
+            `pages.blocks.blockchain.current_block_height`
+          )}
+          data={`${currentBlockHeight}`}
+          statsData={blockchainStats.currentBlockHeight}
         />
         <StatsCard
           noData={lastIrreversibleBlock === ""}

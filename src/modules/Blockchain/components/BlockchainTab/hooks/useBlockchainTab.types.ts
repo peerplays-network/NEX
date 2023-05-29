@@ -5,7 +5,7 @@ export type UseBlockchainTabResult = {
   blockColumns: BlockColumnType[];
   blockchainTableRows?: DataTableRow[];
   blockchainStats: BlockchainStats;
-  currentBlock: number;
+  currentBlockHeight: number;
   lastIrreversibleBlock: string;
   avgTime: number;
   supply: BlockchainSupply;
@@ -19,7 +19,7 @@ export type BlockchainSupply = {
 };
 
 export type BlockchainStats = {
-  currentBlock: number[];
+  currentBlockHeight: number[];
   lastIrreversible: number[];
   avgTime: number[];
   supply: number[];
