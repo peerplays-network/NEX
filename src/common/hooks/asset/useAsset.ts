@@ -4,14 +4,19 @@ import {
   excludedAssetsSymbols,
   tradeableAssetsSymbols,
 } from "../../../api/params";
-import { useAppSettingsContext, usePeerplaysApiContext } from "../../providers";
+import {
+  useAppSettingsContext,
+  useAssetsContext,
+  usePeerplaysApiContext,
+} from "../../providers";
 import { Asset, Cache } from "../../types";
 
 import { UseAssetResult } from "./useAsset.types";
 
 export function useAsset(): UseAssetResult {
-  const { dbApi } = usePeerplaysApiContext();
+  const { dbApi, assetApi } = usePeerplaysApiContext();
   const { cache, setCache: _setCache } = useAppSettingsContext();
+  const { defaultAsset } = useAssetsContext();
 
   const assetsCacheExists = useMemo(() => {
     return Object.keys(cache).length > 0 && cache.assets.length > 0;
@@ -109,6 +114,22 @@ export function useAsset(): UseAssetResult {
     },
     [dbApi, excludedAssetsSymbols]
   );
+
+  const getAssetHolders = useCallback(async () => {
+    if (defaultAsset != undefined) {
+      try {
+        console.log("defaultAsset", defaultAsset);
+        const allAssetHolders = await assetApi("get_asset_holders", [
+          defaultAsset.symbol,
+          0,
+          100,
+        ]);
+        return allAssetHolders;
+      } catch (e) {
+        console.log(e);
+      }
+    }
+  }, [assetApi, defaultAsset]);
 
   const getAssetsBySymbols = useCallback(
     async (symbols: string[]) => {
@@ -231,6 +252,7 @@ export function useAsset(): UseAssetResult {
     setPrecision,
     getAssetBySymbol,
     getAllAssets,
+    getAssetHolders,
     limitByPrecision,
     ceilPrecision,
     getAssetsBySymbols,

@@ -63,12 +63,14 @@ export type AvailableGrapheneApis =
   | "_net"
   | "_crypto"
   | "_bookie"
-  | "_sidechain";
+  | "_sidechain"
+  | "_asset";
 //Done
 export type ApisInstanceType = {
   chain_id: string;
   init_promise: Promise<
     [
+      GrapheneApiType,
       GrapheneApiType,
       GrapheneApiType,
       GrapheneApiType,
@@ -87,6 +89,7 @@ export type ApisInstanceType = {
   _crypto: GrapheneApiType;
   _bookie: GrapheneApiType;
   _sidechain: GrapheneApiType;
+  _asset: GrapheneApiType;
   connect: (cs: string, connectTimeout: number) => void;
   close: () => void;
   db_api: () => GrapheneApiType;
@@ -95,6 +98,7 @@ export type ApisInstanceType = {
   crypto_api: () => GrapheneApiType;
   bookie_api: () => GrapheneApiType;
   sidechain_api: () => GrapheneApiType;
+  asset_api: () => GrapheneApiType;
   setRpcConnectionStatusCallback: (callback: (value?: string) => void) => void;
 };
 

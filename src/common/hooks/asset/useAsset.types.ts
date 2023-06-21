@@ -1,4 +1,4 @@
-import { Asset } from "../../types";
+import { Asset, AssetHolders } from "../../types";
 
 export type UseAssetResult = {
   formAssetBalanceById: (
@@ -14,6 +14,7 @@ export type UseAssetResult = {
     precision?: number | undefined
   ) => number;
   getAllAssets: (tradeableAssetsOnly?: boolean) => Promise<Asset[] | undefined>;
+  getAssetHolders: () => Promise<AssetHolders[] | undefined>;
   limitByPrecision: (value: string | number, precision?: number) => string;
   ceilPrecision: (
     num: string | number,
