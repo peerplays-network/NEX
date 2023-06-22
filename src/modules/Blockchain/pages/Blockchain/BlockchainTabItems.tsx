@@ -2,6 +2,7 @@ import counterpart from "counterpart";
 import { ReactNode, useCallback } from "react";
 
 import {
+  AccountsTab,
   AssetsTab,
   BlockchainTab,
   BlockDetails,
@@ -45,6 +46,7 @@ export const BlockchainTabItems = (
     "committees",
     "sons",
     "fees",
+    "accounts",
   ];
   const key = [
     "blockchain",
@@ -61,6 +63,7 @@ export const BlockchainTabItems = (
     <CommitteeTab key="committees" />,
     <SonsTab key="sons" />,
     <FeesTab key="fees" />,
+    <AccountsTab key="accounts" />,
   ];
 
   return label.map((item, index) => {

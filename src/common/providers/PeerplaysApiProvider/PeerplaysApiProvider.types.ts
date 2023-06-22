@@ -28,6 +28,7 @@ export type PeerPlaysApiContextType = {
   ) => Promise<void>;
   dbApi: (request: string, data?: any) => Promise<any> | undefined;
   historyApi: (request: string, data?: any) => Promise<any> | undefined;
+  assetApi: (request: string, data?: any) => Promise<any> | undefined;
   isTransitionInProgress: () => boolean;
   getTransitionTarget: () =>
     | string

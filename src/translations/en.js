@@ -669,6 +669,11 @@ export const en = {
         show_less: "Show Less",
         show_more: "Show More",
       },
+      accounts: {
+        heading: "PeerPlays Accounts",
+        accounts: "Accounts",
+        search_accounts: "Search Accounts",
+      },
     },
     wallet: {
       heading: "Wallet",
@@ -1290,6 +1295,8 @@ export const en = {
     filled: "Filled",
     total: "Total",
     status_actions: "Status/Actions",
+    account_name: "Account Name",
+    balance: "Balance",
   },
   tableFilters: {
     active: "Active",
