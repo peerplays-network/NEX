@@ -184,6 +184,7 @@ export function AppSettingsProvider({
         setLatencyChecks(0);
       }
     }
+    console.log("apiSettings", apiSettings);
   }, [
     chainId,
     defaultChainId,

@@ -17,29 +17,8 @@ const renders = [
 const filters = [undefined, undefined, undefined];
 const filterModes = [undefined, undefined, undefined];
 const filterSearch = [undefined, undefined, undefined];
-const onFilters = [
-  undefined,
-  // (value: string, record: AccountsTableRow): boolean =>
-  //   record.AccountName.includes(value),
-  undefined,
-  undefined,
-  // undefined,
-];
-const sorters = [
-  // (a: { accountId: string }, b: { accountId: string }) =>
-  //   a.accountId - b.accountId,
-  // (a: { accountName: string }, b: { accountName: string }) =>
-  //   a.accountName - b.accountName,
-  // (a: { balance: number }, b: { balance: number }) => a.balance - b.balance,
-  // (a: { transactionCount: number }, b: { transactionCount: number }) =>
-  //   a.transactionCount - b.transactionCount
-  undefined,
-  undefined,
-  undefined,
-  // undefined,
-  //   (a: { transaction: number }, b: { transaction: number }) =>
-  //     a.transaction - b.transaction,
-];
+const onFilters = [undefined, undefined, undefined];
+const sorters = [undefined, undefined, undefined];
 
 export const AccountColumns: AccountColumnType[] = headings.map(
   (heading, index) => {
