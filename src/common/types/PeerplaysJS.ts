@@ -73,6 +73,7 @@ export type ApisInstanceType = {
       GrapheneApiType,
       GrapheneApiType,
       GrapheneApiType,
+      GrapheneApiType,
       GrapheneApiType
     ]
   >;
