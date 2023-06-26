@@ -56,13 +56,13 @@ build-stg:
     - echo "NEXT_PUBLIC_DEFAULT_QUOTE='$DEV_QUOTE'" >> .env
     - echo "NEXT_PUBLIC_FAUCET_URL='$DEV_FAUCET'" >> .env
     - echo "NEXT_PUBLIC_DEFAULT_CHAIN_ID='$DEV_CHAIN_ID'" >> .env
-    - echo "NEXT_PUBLIC_FORCE_VERSION='$NEXT_PUBLIC_FORCE_VERSION'" >> .env
+    - cat .env && sleep 10
     - npm install
     - npm run build
     - cd .. && tar czf nex-stg.tar.gz NEX/
     - cp nex-stg.tar.gz NEX/ && cd NEX
   rules:
-    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^release/ || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^hot-fix/ 
+    - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^release/ || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^hot-fix/  || $CI_COMMIT_BRANCH == "pipeline-deploys-fixes"
   artifacts: 
     paths:
     - nex-stg.tar.gz
@@ -200,6 +200,7 @@ deployToStaging:
     - rm -rf $PROD_DEPLOY_DIR/* || true
     - tar -zxf nex-stg.tar.gz --directory $PROD_DEPLOY_DIR
     - cd $PROD_DEPLOY_DIR && cd NEX
+    - ls -lah
     - pm2 del nex-staging || true
     - pm2 start npm --name nex-staging -- run start
   after_script:
