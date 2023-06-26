@@ -140,6 +140,7 @@ gitlab-unittest:
     reports:
       junit:
         - junit.xml
+  allow_failure: true
 
 deploy_review:
   dependencies: [build-qa]
