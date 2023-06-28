@@ -75,7 +75,7 @@ export function useActivityAndNotificationTable({
         isWalletActivityTable
       );
 
-      const notificationsRow = notifications.map(({ activity, unread }) => {
+      const notificationsRow = notifications?.map(({ activity, unread }) => {
         return {
           ...activity,
           status: unread,
@@ -90,7 +90,7 @@ export function useActivityAndNotificationTable({
       });
 
       const rowsDataSource = isNotificationTab
-        ? notificationsRow
+        ? notificationsRow ?? []
         : timeModifiedActivityRows;
 
       const allTypes = timeModifiedActivityRows.map(
