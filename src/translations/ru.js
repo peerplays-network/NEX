@@ -1299,6 +1299,7 @@ export const ru = {
     total: "Общий",
     status_actions: "Статус/Действия",
     account_name: "Имя аккаунта",
+    account_id: "идентификатор аккаунта",
     balance: "Остаток средств",
   },
   tableFilters: {

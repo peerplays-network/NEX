@@ -55,6 +55,7 @@ export const BlockchainTabItems = (
     "committees",
     "sons",
     "fees",
+    "accounts",
   ];
   const children = [
     <BlockTab key="blockchain" />,

@@ -1296,6 +1296,7 @@ export const en = {
     total: "Total",
     status_actions: "Status/Actions",
     account_name: "Account Name",
+    account_id: "Account ID",
     balance: "Balance",
   },
   tableFilters: {
