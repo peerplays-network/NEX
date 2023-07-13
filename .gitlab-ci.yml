@@ -86,7 +86,7 @@ build-production:
     - cd .. && tar czf nex-prod.tar.gz NEX/
     - cp nex-prod.tar.gz NEX/ && cd NEX
   rules:
-  - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"
+  - if: '$CI_COMMIT_BRANCH == "feature/pipeline-deploy-rework"'
   artifacts: 
     paths:
     - nex-prod.tar.gz
