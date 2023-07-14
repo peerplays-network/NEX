@@ -12,7 +12,7 @@ const renders = [
       {accountName}
     </Link>
   ),
-  undefined,
+  (balance: string): JSX.Element => <span>{balance}</span>,
 ];
 const filters = [undefined, undefined, undefined];
 const filterModes = [undefined, undefined, undefined];

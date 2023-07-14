@@ -13,3 +13,10 @@ export const UserCard = styled(UiCard)`
     }
   }
 `;
+
+export const UserHeading = styled.h2`
+  margin: 0 15px;
+  ${breakpoint.sm} {
+    margin: 0 25px;
+  }
+`;

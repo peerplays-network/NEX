@@ -12,14 +12,18 @@ export type AccountsTableRow = {
   key: string;
   AccountID: string;
   AccountName: string;
-  Balance: number;
+  Balance: string;
 };
 
 export type AccountColumnType = {
   title: () => JSX.Element;
   dataIndex: string;
   key: string;
-  render: ((witness: string) => JSX.Element) | undefined;
+  render:
+    | ((accountID: string) => JSX.Element)
+    | ((accountName: string) => JSX.Element)
+    | ((balance: string) => JSX.Element)
+    | undefined;
   filters:
     | {
         text: string;

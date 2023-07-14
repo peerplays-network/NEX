@@ -104,8 +104,12 @@ export type AssetColumnType = {
 };
 
 export const createAssetsColumns: (
-  actionType?: "send_receive" | "receive_select" | "send_select"
-) => AssetColumnType[] = (actionType = "send_receive") => {
+  actionType?: "send_receive" | "receive_select" | "send_select",
+  showActions?: boolean
+) => AssetColumnType[] = (actionType = "send_receive", showActions = true) => {
+  if (showActions === false && headings.length > 4) {
+    headings.splice(-1);
+  }
   return headings.map((heading, index) => {
     return {
       title: (): JSX.Element => <TableHeading heading={heading} />,

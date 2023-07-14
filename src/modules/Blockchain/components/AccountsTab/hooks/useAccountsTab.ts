@@ -3,6 +3,7 @@ import { uniq } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 
 import { useAsset } from "../../../../../common/hooks";
+import { useAssetsContext } from "../../../../../common/providers";
 import { AccountColumns } from "../components";
 
 import {
@@ -21,7 +22,7 @@ export function useAccountsTab(): UseAccountsTabResult {
   const [accountsColumns, setAccountsColumns] = useState<AccountColumnType[]>(
     []
   );
-
+  const { defaultAsset } = useAssetsContext();
   const { getAssetHolders } = useAsset();
 
   const formAccountsColumns = useCallback(
@@ -45,7 +46,10 @@ export function useAccountsTab(): UseAccountsTabResult {
               break;
             case column.key === "Balance":
               column.filters = accountBalances.map((balance) => {
-                return { text: balance.toString(), value: balance.toString() };
+                return {
+                  text: balance.toString(),
+                  value: balance.toString(),
+                };
               });
               break;
           }
@@ -66,7 +70,7 @@ export function useAccountsTab(): UseAccountsTabResult {
           key: assetHolder.account_id,
           AccountID: assetHolder.account_id,
           AccountName: assetHolder.name,
-          Balance: Number(assetHolder.amount),
+          Balance: `${Number(assetHolder.amount)} ${defaultAsset?.symbol}`,
         } as AccountsTableRow;
       });
       return accountsRows;
