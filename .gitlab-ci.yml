@@ -261,6 +261,8 @@ deployHAPROXY:
   script: 
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
+    - pwd
+    - ls -lah
     - ansible-playbook -v --private-key $ANSIBLE_KEY nex.yaml
   dependencies: [build-production]
   rules:
