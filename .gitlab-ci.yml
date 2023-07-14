@@ -252,7 +252,10 @@ build-production:
 #    - production
 
 deployHAPROXY:
+  image: python3.9 
   stage: deploy
+  before_script:
+    - pip install ansible
   script: 
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
