@@ -256,6 +256,8 @@ deployHAPROXY:
   stage: deploy
   before_script:
     - pip install ansible
+    - echo 'export PATH=$PATH:/var/lib/gitlab-runner/.local/bin' >> ~/.bashrc
+    - source ~/.bashrc
   script: 
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
