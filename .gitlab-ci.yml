@@ -280,13 +280,10 @@ deployHAPROXY:
   - chmod 700 ~/.ssh
 
   script:  
-    - ls -lah
-    - pwd
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
-    - pwd
-    - ls -lah
-    - ansible-playbook -v -i "$PROD_INVENTORY" nex.yaml
+    - echo -e "$PROD_INVENTORY" | tr ' ' '\n' > ansible_hosts
+    - ansible-playbook -v -i ansible_hosts  nex.yaml
   dependencies: [build-production]
   rules:
     - if: '$CI_COMMIT_BRANCH == "feature/pipeline-deploy-rework"'
