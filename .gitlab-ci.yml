@@ -255,7 +255,10 @@ deployHAPROXY:
   image: geerlingguy/docker-ubuntu2004-ansible 
   stage: deploy
   script: 
+    - DEBIAN_FRONTEND=noninteractive apt-get install -y \
+      git 
     - ls -lah
+    - pwd
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
     - pwd
