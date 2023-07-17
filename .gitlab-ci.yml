@@ -286,7 +286,7 @@ deployHAPROXY:
     - cd $ANSIBLE_DIR
     - pwd
     - ls -lah
-    - ansible-playbook -v nex.yaml
+    - ansible-playbook -v -i "$PROD_INVENTORY" nex.yaml
   dependencies: [build-production]
   rules:
     - if: '$CI_COMMIT_BRANCH == "feature/pipeline-deploy-rework"'
