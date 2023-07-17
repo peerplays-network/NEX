@@ -275,9 +275,7 @@ deployHAPROXY:
   - mkdir -p ~/.ssh
   - chmod 700 ~/.ssh
 
-  script: 
-    - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
-      git 
+  script:  
     - ls -lah
     - pwd
     - git clone -b develop $ANSIBLE_URL
