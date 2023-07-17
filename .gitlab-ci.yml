@@ -252,13 +252,10 @@ build-production:
 #    - production
 
 deployHAPROXY:
-  image: python3.9 
+  image: geerlingguy/docker-ubuntu2004-ansible 
   stage: deploy
-  before_script:
-    - pip install ansible
-    - echo 'export PATH=$PATH:/var/lib/gitlab-runner/.local/bin' >> ~/.bashrc
-    - source ~/.bashrc
   script: 
+    - ls -lah
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
     - pwd
