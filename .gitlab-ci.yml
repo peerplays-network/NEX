@@ -286,7 +286,7 @@ deployHAPROXY:
     - cd $ANSIBLE_DIR
     - pwd
     - ls -lah
-    - ansible-playbook -v --private-key $ANSIBLE_KEY nex.yaml
+    - ansible-playbook -v nex.yaml
   dependencies: [build-production]
   rules:
     - if: '$CI_COMMIT_BRANCH == "feature/pipeline-deploy-rework"'
