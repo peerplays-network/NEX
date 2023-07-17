@@ -254,8 +254,29 @@ build-production:
 deployHAPROXY:
   image: geerlingguy/docker-ubuntu2004-ansible 
   stage: deploy
+  before_script:
+
+  ## Install ssh-agent if not already installed, it is required by Docker.
+  - 'command -v ssh-agent >/dev/null || ( apt-get update -y && apt-get install openssh-client git -y )'
+
+  ##
+  ## Run ssh-agent (inside the build environment)
+  ##
+  - eval $(ssh-agent -s)
+  
+  ## Add the SSH key stored in SSH_PRIVATE_KEY file type CI/CD variable to the agent store
+
+  - chmod 400 "$SSH_PRIVATE_KEY"
+  - ssh-add "$SSH_PRIVATE_KEY"
+
+  ##
+  ## Create the SSH directory and give it the right permissions
+  ##
+  - mkdir -p ~/.ssh
+  - chmod 700 ~/.ssh
+
   script: 
-    - DEBIAN_FRONTEND=noninteractive apt-get install -y \
+    - DEBIAN_FRONTEND=noninteractive apt-get update && apt-get install -y \
       git 
     - ls -lah
     - pwd
