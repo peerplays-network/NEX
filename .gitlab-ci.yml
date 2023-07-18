@@ -238,6 +238,10 @@ deployToProduction:
   rules:
     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
   when: manual 
+  environment:
+    name: prod
+    url: https://swap.peerplays.com
+
   tags:
     - production
 
