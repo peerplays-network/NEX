@@ -282,10 +282,7 @@ deployHAPROXY:
   script:  
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
-    - ls -lah
     - echo -e "$PROD_INVENTORY" | tr ' ' '\n' >> /etc/ansible/ansible_hosts
-    - ls -lah
-    - cat ansible_hosts
     - ansible-playbook -v nex.yaml
   dependencies: [build-production]
   rules:
@@ -293,9 +290,6 @@ deployHAPROXY:
   when: manual 
   tags:
     - haproxy
-
-
-
 
 #dast:
 #  stage: dast
