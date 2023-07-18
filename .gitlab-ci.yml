@@ -282,7 +282,8 @@ deployHAPROXY:
   script:  
     - git clone -b develop $ANSIBLE_URL
     - cd $ANSIBLE_DIR
-    - echo -e "$PROD_INVENTORY" | tr ' ' '\n' >> /etc/ansible/ansible_hosts
+    - echo -e "$PROD_INVENTORY" | tr ' ' '\n' >> /etc/ansible/hosts
+    - cat /etc/ansible/hosts
     - ansible-playbook -v nex.yaml
   dependencies: [build-production]
   rules:
