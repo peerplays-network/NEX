@@ -280,8 +280,9 @@ deployHAPROXY:
   - chmod 700 ~/.ssh
 
   script:  
-    - git clone -b develop $ANSIBLE_URL
-    - cd $ANSIBLE_DIR
+    - git clone -b develop "$ANSIBLE_URL"
+    - mv nex-prod.tar.gz "$ANSIBLE_DIR"
+    - cd "$ANSIBLE_DIR"
     - echo -e "$PROD_INVENTORY" >> /etc/ansible/hosts
     - echo "$KNOWN_HOSTS" >> ~/.ssh/known_hosts
     - ansible-playbook -v nex.yaml
