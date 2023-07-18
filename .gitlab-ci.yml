@@ -236,7 +236,7 @@ deployToProduction:
     - ansible-playbook -v nex.yaml
   dependencies: [build-production]
   rules:
-    - if: '$CI_COMMIT_BRANCH == "feature/pipeline-deploy-rework"'
+    - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main"'
   when: manual 
   tags:
     - production
