@@ -228,7 +228,7 @@ deployToProduction:
   - chmod 700 ~/.ssh
 
   script:  
-    - git clone -b develop "$ANSIBLE_URL"
+    - git clone "$ANSIBLE_URL"
     - mv nex-prod.tar.gz "$ANSIBLE_DIR"
     - cd "$ANSIBLE_DIR"
     - echo -e "$PROD_INVENTORY" >> /etc/ansible/hosts
