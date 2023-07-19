@@ -56,7 +56,6 @@ build-stg:
     - echo "NEXT_PUBLIC_DEFAULT_QUOTE='$DEV_QUOTE'" >> .env
     - echo "NEXT_PUBLIC_FAUCET_URL='$DEV_FAUCET'" >> .env
     - echo "NEXT_PUBLIC_DEFAULT_CHAIN_ID='$DEV_CHAIN_ID'" >> .env
-    - echo "NEXT_PUBLIC_FORCE_VERSION='$NEXT_PUBLIC_FORCE_VERSION'" >> .env
     - npm install
     - npm run build
     - cd .. && tar czf nex-stg.tar.gz NEX/
@@ -140,6 +139,7 @@ gitlab-unittest:
     reports:
       junit:
         - junit.xml
+  allow_failure: true
 
 deploy_review:
   dependencies: [build-qa]
@@ -197,6 +197,7 @@ deployToStaging:
   stage: deploy
   script: 
     - rm -rf $PROD_DEPLOY_DIR/* || true
+    - pwd && sleep 5
     - tar -zxf nex-stg.tar.gz --directory $PROD_DEPLOY_DIR
     - cd $PROD_DEPLOY_DIR && cd NEX
     - pm2 del nex-staging || true

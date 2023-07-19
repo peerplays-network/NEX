@@ -670,6 +670,11 @@ export const ru = {
         show_less: "Показывай меньше",
         show_more: "Показать больше",
       },
+      accounts: {
+        heading: "Аккаунты PeerPlays",
+        accounts: "Аккаунты",
+        search_accounts: "Поиск аккаунтов",
+      },
     },
     wallet: {
       heading: "Бумажник",
@@ -1293,6 +1298,9 @@ export const ru = {
     filled: "Заполненный",
     total: "Общий",
     status_actions: "Статус/Действия",
+    account_name: "Имя аккаунта",
+    account_id: "идентификатор аккаунта",
+    balance: "Остаток средств",
   },
   tableFilters: {
     active: "Активный",

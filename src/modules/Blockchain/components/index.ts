@@ -6,3 +6,4 @@ export * from "./WitnessesTab";
 export * from "./SonsTab";
 export * from "./FeesTab";
 export * from "./TransactionDetails";
+export * from "./AccountsTab";

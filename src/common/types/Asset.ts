@@ -27,3 +27,9 @@ export type AssetOptions = {
   whitelist_authorities: any[];
   whitelist_markets: any[];
 };
+
+export type AssetHolders = {
+  account_id: string;
+  name: string;
+  amount: string;
+};

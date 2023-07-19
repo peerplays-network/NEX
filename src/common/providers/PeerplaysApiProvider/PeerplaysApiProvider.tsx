@@ -1320,6 +1320,9 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
             case "_bookie":
               selectedApi = apiInstance.current._bookie;
               break;
+            case "_asset":
+              selectedApi = apiInstance.current._asset;
+              break;
             default:
               selectedApi = apiInstance.current._db;
             // code block
@@ -1333,6 +1336,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
 
   const dbApi = useCallback(getApi("_db"), [getApi]);
   const historyApi = useCallback(getApi("_hist"), [getApi]);
+  const assetApi = useCallback(getApi("_asset"), [getApi]);
 
   useEffect(() => {
     if ((window as any).whalevault) {
@@ -1348,6 +1352,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
       willTransitionTo,
       dbApi,
       historyApi,
+      assetApi,
       isTransitionInProgress,
       getTransitionTarget,
       isAutoSelection,
@@ -1361,6 +1366,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
     willTransitionTo,
     dbApi,
     historyApi,
+    assetApi,
     isTransitionInProgress,
     getTransitionTarget,
     isAutoSelection,
