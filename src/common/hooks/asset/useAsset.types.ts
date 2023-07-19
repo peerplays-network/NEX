@@ -1,4 +1,4 @@
-import { Asset } from "../../types";
+import { Asset, AssetHolders } from "../../types";
 
 export type UseAssetResult = {
   formAssetBalanceById: (
@@ -11,6 +11,7 @@ export type UseAssetResult = {
   ) => Asset | undefined;
   getAssetById: (id: string) => Promise<Asset | undefined>;
   getAssetBySymbol: (symbol: string) => Promise<Asset | undefined>;
+  getAssetHolders: () => Promise<AssetHolders[] | undefined>;
   setPrecision: (
     roundTo: boolean,
     amount: number,

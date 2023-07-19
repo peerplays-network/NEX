@@ -70,36 +70,33 @@ export function useActivityAndNotificationTable({
   const setActivitiesAndNotificationsRows = useCallback(async () => {
     try {
       setLoading(true);
+      let rowsDataSource, uniqTypes: string[];
       const activityRows = await getActivitiesRows(
         userName as string,
         isWalletActivityTable
       );
 
-      const notificationsRow = notifications.map(({ activity, unread }) => {
-        return {
-          ...activity,
-          status: unread,
-        } as ActivityRow;
-      });
+      if (isNotificationTab) {
+        rowsDataSource = notifications.map(({ activity, unread }) => {
+          return {
+            ...activity,
+            status: unread,
+          } as ActivityRow;
+        });
+      } else {
+        rowsDataSource = activityRows.map((activityRow) => {
+          return {
+            ...activityRow,
+            time: formDate(activityRow.time),
+          } as ActivityRow;
+        });
+        const allTypes = rowsDataSource.map((activity) => activity.type);
+        uniqTypes = uniq(allTypes);
+      }
 
-      const timeModifiedActivityRows = activityRows.map((activityRow) => {
-        return {
-          ...activityRow,
-          time: formDate(activityRow.time),
-        } as ActivityRow;
-      });
-
-      const rowsDataSource = isNotificationTab
-        ? notificationsRow
-        : timeModifiedActivityRows;
-
-      const allTypes = timeModifiedActivityRows.map(
-        (activity) => activity.type
-      );
-      const uniqTypes = uniq(allTypes);
       const updatedColumns = columns.map((column) => {
         if (column.key === "type") {
-          column.filters = uniqTypes.map((type) => {
+          column.filters = uniqTypes.map((type: string) => {
             return {
               text: counterpart.translate(`transaction.trxTypes.${type}.title`),
               value: type,
@@ -108,6 +105,7 @@ export function useActivityAndNotificationTable({
         }
         return { ...column };
       });
+
       setActivityAndNotificationColumns(updatedColumns);
       _setActivitiesAndNotificationsRows(rowsDataSource);
       setSearchDataSource(rowsDataSource);
