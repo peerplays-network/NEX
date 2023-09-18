@@ -116,7 +116,7 @@ export const AssetsTable = ({
           loading={loading}
           pagination={{
             hideOnSinglePage: true,
-            defaultPageSize: 2,
+            defaultPageSize: 5,
             defaultCurrent: 1,
             showSizeChanger: false,
             showLessItems: true,

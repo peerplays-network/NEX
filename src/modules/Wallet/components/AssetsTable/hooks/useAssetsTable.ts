@@ -33,7 +33,7 @@ export function useAssetsTable({
   const formAssetRow = useCallback(
     async (balance: Balance): Promise<AssetTableRow> => {
       const asset = await getAssetById(balance.asset_type);
-      const available = balance.balance as number;
+      const available = setPrecision(false, balance.balance, asset?.precision);
       let inOrders = 0;
       if (fullAccount) {
         const limitOrders = fullAccount.limit_orders;
