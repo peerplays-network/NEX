@@ -251,6 +251,9 @@ generate_changelog:
   image: node:lts-alpine
   stage: prepare_release
   script:
+    - apk update && \
+      apk upgrade && \
+      apk add git
     - npm ci
     - npx semantic-release --no-ci --dry-run
     - git config --local user.email "$GITLAB_USER_EMAIL"
