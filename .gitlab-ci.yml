@@ -21,6 +21,7 @@ stages:
 - build
 - test
 - deploy
+- prepare_release
 - dast
 
 build-qa:
@@ -245,6 +246,23 @@ deployToProduction:
 
   tags:
     - production
+
+generate_changelog:
+  image: node:16.17.0-alpine3.16
+  stage: prepare_release
+  script:
+    - npm ci
+    - npx semantic-release --no-ci --dry-run
+    - git config --local user.email "$GITLAB_USER_EMAIL"
+    - git config --local user.name "rilesdun"
+    - git add CHANGELOG.md
+    - |
+      git commit -m "chore: update CHANGELOG.md" || echo "No changes to commit"
+    - git push
+  variables:
+    GITLAB_TOKEN: $GITLAB_TOKEN
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "feature/release-automation-changelogs"'
 
 dast:
   stage: dast
