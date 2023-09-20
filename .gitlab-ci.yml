@@ -248,7 +248,7 @@ deployToProduction:
     - production
 
 generate_changelog:
-  image: node:lts-alpine
+  image: node:18.18.0
   stage: prepare_release
   script:
     - apk update && \
