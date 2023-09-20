@@ -18,10 +18,10 @@ variables:
   GIT_DEPTH: "0"  # Tells git to fetch all the branches of the project, required by the analysis task
 
 stages:
+- prepare_release
 - build
 - test
 - deploy
-- prepare_release
 - dast
 
 build-qa:
@@ -251,9 +251,6 @@ generate_changelog:
   image: node:18.18.0
   stage: prepare_release
   script:
-    - apk update && \
-      apk upgrade && \
-      apk add git
     - npm ci
     - npx semantic-release --no-ci --dry-run
     - git config --local user.email "$GITLAB_USER_EMAIL"
