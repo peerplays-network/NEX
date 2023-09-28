@@ -117,5 +117,6 @@
   },
   "overrides": {
     "glob-parent": "^6.0.1"
-  }
+  },
+  "version": null
 }
