@@ -247,18 +247,12 @@ deployToProduction:
   tags:
     - production
 
-generate_changelog:
+generate_release:
   image: node:18.18.0
   stage: prepare_release
   script:
     - npm ci
     - npx semantic-release --dry-run
-    - git config --local user.email "$GITLAB_USER_EMAIL"
-    - git config --local user.name "rilesdun"
-    - git add CHANGELOG.md
-    - |
-      git commit -m "chore: update CHANGELOG.md" || echo "No changes to commit"
-    - git push origin HEAD:$CI_COMMIT_REF_NAME
   variables:
     GITLAB_TOKEN: $GITLAB_TOKEN
   rules:
