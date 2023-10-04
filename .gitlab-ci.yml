@@ -20,6 +20,7 @@ variables:
 stages:
 - build
 - test
+- prepare_release
 - deploy
 - dast
 
@@ -245,6 +246,20 @@ deployToProduction:
 
   tags:
     - production
+
+generate_release:
+  image: node:18.18.0
+  stage: prepare_release
+  before_script:
+    - git config user.name "CI/CD Bot"
+    - git config user.email "$GITLAB_USER_EMAIL"
+  script:
+    - npm ci
+    - npx semantic-release
+  variables:
+    GL_TOKEN: $GITLAB_TOKEN
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
 
 dast:
   stage: dast
