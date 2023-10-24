@@ -13,7 +13,6 @@ export type AssetTableRow = {
 export type UseAssetsTabResult = {
   loading: boolean;
   assetsColumns: AssetColumnType[];
-  assetsTableRows: AssetTableRow[];
   searchDataSource: AssetTableRow[];
   setSearchDataSource: Dispatch<SetStateAction<AssetTableRow[]>>;
 };

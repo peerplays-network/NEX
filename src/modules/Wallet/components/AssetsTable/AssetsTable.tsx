@@ -20,6 +20,8 @@ type Props = {
   title: string;
   actionType?: "send_receive" | "receive_select" | "send_select";
   filterAsset?: string;
+  userName?: string;
+  showActions?: boolean;
 };
 
 export const AssetsTable = ({
@@ -27,14 +29,11 @@ export const AssetsTable = ({
   title,
   actionType = "send_receive",
   filterAsset = "",
+  userName = undefined,
+  showActions = true,
 }: Props): JSX.Element => {
-  const {
-    loading,
-    assetsColumns,
-    assetsTableRows,
-    searchDataSource,
-    setSearchDataSource,
-  } = useAssetsTable({ filterAsset, actionType });
+  const { loading, assetsColumns, searchDataSource, setSearchDataSource } =
+    useAssetsTable({ filterAsset, actionType, userName, showActions });
   const { md } = useViewportContext();
   const componentRef = useRef<HTMLDivElement>(null);
   const renderListItem = useCallback(
@@ -80,7 +79,7 @@ export const AssetsTable = ({
         <Styled.AssetHeader>{title}</Styled.AssetHeader>
         <SearchTableInput
           columns={assetsColumns as ColumnsType<AssetTableRow>}
-          dataSource={assetsTableRows}
+          dataSource={searchDataSource}
           setDataSource={setSearchDataSource}
           inputProps={{
             placeholder: counterpart.translate(
@@ -91,7 +90,7 @@ export const AssetsTable = ({
         />
         <TableDownloader
           componentRef={componentRef}
-          data={assetsTableRows}
+          data={searchDataSource}
         ></TableDownloader>
       </Styled.AssetHeaderBar>
       {md ? (
@@ -117,7 +116,7 @@ export const AssetsTable = ({
           loading={loading}
           pagination={{
             hideOnSinglePage: true,
-            defaultPageSize: 2,
+            defaultPageSize: 5,
             defaultCurrent: 1,
             showSizeChanger: false,
             showLessItems: true,
@@ -130,7 +129,7 @@ export const AssetsTable = ({
       <Styled.PrintTable>
         <AssetsPrintTable
           ref={componentRef}
-          assetsTableRows={assetsTableRows}
+          assetsTableRows={searchDataSource}
           loading={loading}
           assetsColumns={assetsColumns}
         />

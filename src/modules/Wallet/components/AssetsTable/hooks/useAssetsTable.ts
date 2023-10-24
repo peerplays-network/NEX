@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { utils } from "../../../../../api/utils";
 import { useAccount, useAsset } from "../../../../../common/hooks";
 import { useUserContext } from "../../../../../common/providers";
-import { Asset, FullAccount } from "../../../../../common/types";
+import { AccountBalance, FullAccount } from "../../../../../common/types";
 import { AssetColumnType, createAssetsColumns } from "../../AssetsColumns";
 
 import { AssetTableRow, UseAssetsTabResult } from "./useAssetsTable.types";
@@ -12,64 +12,77 @@ import { AssetTableRow, UseAssetsTabResult } from "./useAssetsTable.types";
 type Args = {
   actionType?: "send_receive" | "receive_select" | "send_select";
   filterAsset?: string;
+  userName?: string;
+  showActions?: boolean;
 };
 
 export function useAssetsTable({
   filterAsset,
   actionType,
+  userName,
+  showActions = true,
 }: Args): UseAssetsTabResult {
   const [searchDataSource, setSearchDataSource] = useState<AssetTableRow[]>([]);
   const [fullAccount, _setFullAccount] = useState<FullAccount | undefined>();
 
   const [loading, setLoading] = useState<boolean>(true);
-  const { assets, localStorageAccount } = useUserContext();
+  const { localStorageAccount } = useUserContext();
   const { getFullAccount } = useAccount();
-  const { setPrecision, limitByPrecision } = useAsset();
+  const { getAssetById, setPrecision, limitByPrecision } = useAsset();
 
   const formAssetRow = useCallback(
-    (asset: Asset): AssetTableRow => {
-      const available = asset.amount as number;
+    async (balance: AccountBalance): Promise<AssetTableRow> => {
+      const asset = await getAssetById(balance.asset_type);
+      const available = setPrecision(false, balance.balance, asset?.precision);
       let inOrders = 0;
       if (fullAccount) {
         const limitOrders = fullAccount.limit_orders;
         const limitOrdersForTheAsset = limitOrders.filter((limitOrder) => {
           const orderAssetsIds = [limitOrder.sell_price.base.asset_id];
-          return orderAssetsIds.includes(asset.id);
+          return orderAssetsIds.includes(asset?.id as string);
         });
         const limitOrdersAmountsForTheAsset = limitOrdersForTheAsset.map(
-          (order) => setPrecision(false, order.for_sale, asset.precision)
+          (order) => setPrecision(false, order.for_sale, asset?.precision)
         );
         inOrders = sum(limitOrdersAmountsForTheAsset);
       }
       return {
-        key: asset.id,
-        symbol: asset.symbol,
-        name: utils.getNativeBlockchainFromAssetSymbol(asset.symbol),
+        key: asset?.id as string,
+        symbol: asset?.symbol as string,
+        name: utils.getNativeBlockchainFromAssetSymbol(asset?.symbol as string),
         available: available,
-        inOrders: limitByPrecision(inOrders, asset.precision),
+        inOrders: limitByPrecision(inOrders, asset?.precision),
       };
     },
     [fullAccount, setPrecision]
   );
 
-  const assetsTableRows = useMemo(() => {
-    if (fullAccount && assets && assets.length) {
-      const assetsRows = assets
-        .filter((asset) => asset.symbol !== filterAsset)
-        .map(formAssetRow);
+  const assetsTableRows = useMemo(async () => {
+    if (fullAccount) {
+      const assetsRows = await Promise.all(
+        fullAccount.balances
+          .filter(async (balance: AccountBalance) => {
+            const asset = await getAssetById(balance.asset_type);
+            return asset?.symbol !== filterAsset;
+          })
+          .map(async (balance: AccountBalance) => {
+            return await formAssetRow(balance);
+          })
+      );
       setSearchDataSource(assetsRows);
       return assetsRows;
     } else {
       return [];
     }
-  }, [fullAccount, assets, assets.length, filterAsset, formAssetRow]);
+  }, [fullAccount, filterAsset, formAssetRow]);
 
   const assetsColumns = useMemo(() => {
-    const symbols = assetsTableRows.map((assetRow) => assetRow.symbol);
-    const allNames = assetsTableRows.map((assetRow) => assetRow.name);
+    const symbols = searchDataSource.map((assetRow) => assetRow.symbol);
+    const allNames = searchDataSource.map((assetRow) => assetRow.name);
     const uniqNames = uniq(allNames);
     const updatedColumns: AssetColumnType[] = createAssetsColumns(
-      actionType
+      actionType,
+      showActions
     ).map((column) => {
       switch (true) {
         case column.key === "symbol":
@@ -90,9 +103,14 @@ export function useAssetsTable({
 
   useEffect(() => {
     let ignore = false;
+    let fullAccount: FullAccount | undefined;
     async function setFullAccount() {
       setLoading(true);
-      const fullAccount = await getFullAccount(localStorageAccount, false);
+      if (userName === undefined) {
+        fullAccount = await getFullAccount(localStorageAccount, false);
+      } else {
+        fullAccount = await getFullAccount(userName, false);
+      }
       if (!ignore) {
         _setFullAccount(fullAccount);
         setLoading(false);
@@ -102,12 +120,17 @@ export function useAssetsTable({
     return () => {
       ignore = true;
     };
-  }, [setLoading, getFullAccount, localStorageAccount, _setFullAccount]);
+  }, [
+    setLoading,
+    getFullAccount,
+    localStorageAccount,
+    userName,
+    _setFullAccount,
+  ]);
 
   return {
     loading,
     assetsColumns,
-    assetsTableRows,
     searchDataSource,
     setSearchDataSource,
   };

@@ -1323,6 +1323,9 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
             case "_sidechain":
               selectedApi = apiInstance.current._sidechain;
               break;
+            case "_asset":
+              selectedApi = apiInstance.current._asset;
+              break;
             default:
               selectedApi = apiInstance.current._db;
             // code block
@@ -1337,6 +1340,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
   const dbApi = useCallback(getApi("_db"), [getApi]);
   const historyApi = useCallback(getApi("_hist"), [getApi]);
   const sidechainApi = useCallback(getApi("_sidechain"), [getApi]);
+  const assetApi = useCallback(getApi("_asset"), [getApi]);
 
   useEffect(() => {
     if ((window as any).whalevault) {
@@ -1353,6 +1357,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
       dbApi,
       historyApi,
       sidechainApi,
+      assetApi,
       isTransitionInProgress,
       getTransitionTarget,
       isAutoSelection,
@@ -1367,6 +1372,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
     dbApi,
     historyApi,
     sidechainApi,
+    assetApi,
     isTransitionInProgress,
     getTransitionTarget,
     isAutoSelection,
