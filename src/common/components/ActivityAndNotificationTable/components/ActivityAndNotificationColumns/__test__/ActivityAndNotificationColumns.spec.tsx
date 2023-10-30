@@ -19,6 +19,9 @@ describe("ActivityAndNotificationColumns", () => {
       status: true,
       time: "2022-12-03T12:11:54",
       type: "transfer",
+      block_num: 1,
+      trx_in_block: 0,
+      transaction_id: "",
     };
     activity2 = {
       fee: "20 TEST",
@@ -28,17 +31,20 @@ describe("ActivityAndNotificationColumns", () => {
       status: false,
       time: "2022-12-01T11:11:53",
       type: "account_update",
+      block_num: 1,
+      trx_in_block: 0,
+      transaction_id: "",
     };
     activityColumns = ActivityAndNotificationColumns(false, () => null);
     notificationColumns = ActivityAndNotificationColumns(true, () => null);
   });
 
   it("should return the correct columns for the notification tab", () => {
-    expect(notificationColumns).toHaveLength(6);
+    expect(notificationColumns).toHaveLength(7);
   });
 
   it("should return the correct columns for the activity tab", () => {
-    expect(activityColumns).toHaveLength(5);
+    expect(activityColumns).toHaveLength(6);
   });
 
   it("should return the correct onFilter function for the type column", () => {

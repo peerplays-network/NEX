@@ -2,21 +2,10 @@ import counterpart from "counterpart";
 import { ChainTypes } from "peerplaysjs-lib";
 import { useCallback } from "react";
 
-import { useAccountHistory, useAsset } from "..";
+import { useAccountHistory, useAsset, useBlockchain } from "..";
 import { defaultToken } from "../../../api/params";
-import {
-  useAssetsContext,
-  usePeerplaysApiContext,
-  useUserContext,
-} from "../../providers";
-import {
-  ActivityRow,
-  Amount,
-  Asset,
-  BlockHeader,
-  Fee,
-  History,
-} from "../../types";
+import { useAssetsContext, useUserContext } from "../../providers";
+import { ActivityRow, Amount, Asset, Fee, History } from "../../types";
 
 import { useAccount } from "./useAccount";
 import { UseActivityResult } from "./useActivity.types";
@@ -25,9 +14,9 @@ export function useActivity(): UseActivityResult {
   const { getUserNameById, getAccountByName } = useAccount();
   const { formAssetBalanceById, getAssetById, setPrecision } = useAsset();
   const { defaultAsset } = useAssetsContext();
-  const { dbApi } = usePeerplaysApiContext();
   const { getAccountHistoryById } = useAccountHistory();
   const { id } = useUserContext();
+  const { getBlockHeader, getBlock2 } = useBlockchain();
 
   const formActivityDescription: {
     [activityType: string]: (operation: any, result?: any) => Promise<string>;
@@ -392,10 +381,14 @@ export function useActivity(): UseActivityResult {
   const formActivityRow = useCallback(
     async (activity: History): Promise<ActivityRow> => {
       const fee = activity.op[1].fee as Fee;
-      const blockHeader: BlockHeader = await dbApi("get_block_header", [
-        activity.block_num,
-      ]);
-      const time = blockHeader.timestamp;
+      const block_num = activity.block_num;
+      const trx_in_block = activity.trx_in_block;
+      const blockHeader = await getBlockHeader(block_num);
+      const rawBlock = await getBlock2(block_num);
+      const transaction_id = rawBlock
+        ? rawBlock.transaction_ids[trx_in_block]
+        : "";
+      const time = blockHeader ? blockHeader.timestamp : "";
       const feeAsset = await getAssetById(fee.asset_id);
       const operationsNames = Object.keys(ChainTypes.operations);
       const operationType = operationsNames[activity.op[0]].toLowerCase();
@@ -411,12 +404,15 @@ export function useActivity(): UseActivityResult {
         type: operationType,
         info: activityDescription,
         id: activity.id,
+        block_num: block_num,
+        trx_in_block: trx_in_block,
+        transaction_id: transaction_id,
         fee: `${setPrecision(false, fee.amount, feeAsset?.precision)} ${
           feeAsset?.symbol
         }`,
       } as ActivityRow;
     },
-    [dbApi, defaultAsset, getAssetById, formActivityDescription]
+    [getBlockHeader, defaultAsset, getAssetById, formActivityDescription]
   );
 
   const getActivitiesRows = useCallback(

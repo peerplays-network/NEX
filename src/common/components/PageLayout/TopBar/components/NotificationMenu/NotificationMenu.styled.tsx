@@ -46,6 +46,7 @@ export const ActivitysItemContent = styled.div`
       color: ${colors.textColorSecondary};
     }
     .activity-info-value {
+      word-break: break-all;
       font-weight: 500;
       font-size: 12px;
       margin-left: 8px;

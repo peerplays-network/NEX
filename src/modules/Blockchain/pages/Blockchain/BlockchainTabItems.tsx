@@ -14,22 +14,21 @@ import {
 } from "../../components";
 
 export const BlockchainTabItems = (
-  block: string | string[] | undefined,
   blockNum: number | undefined,
   transactionId: string | undefined
 ): { key: string; label: ReactNode; children: ReactNode }[] => {
   const BlockTab = useCallback((): JSX.Element => {
     return (
       <>
-        {block ? (
+        {blockNum ? (
           <>
             {transactionId ? (
               <TransactionDetails
-                block={blockNum as number}
-                transaction={transactionId}
+                block={blockNum}
+                transactionId={transactionId}
               />
             ) : (
-              <BlockDetails block={blockNum as unknown as number} />
+              <BlockDetails block={blockNum} />
             )}
           </>
         ) : (
@@ -37,7 +36,7 @@ export const BlockchainTabItems = (
         )}
       </>
     );
-  }, [block, transactionId, blockNum]);
+  }, [transactionId, blockNum]);
 
   const label = [
     "blockchain",

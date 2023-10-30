@@ -3,7 +3,7 @@ import { breakpoint } from "../../../ui/src/breakpoints";
 import { colors } from "../../../ui/src/colors";
 import { mixIns } from "../../../ui/src/mixins";
 
-export const GeneratedBitcoinAddressLabel = styled.div`
+export const GeneratedAddressLabel = styled.div`
   margin-bottom: 20px;
   color: ${colors.textColorSecondary};
   font-size: 12px;
@@ -12,7 +12,7 @@ export const GeneratedBitcoinAddressLabel = styled.div`
   }
 `;
 
-export const GeneratedBitcoinAddress = styled(Input)`
+export const GeneratedAddress = styled(Input)`
   height: 50px;
   background: ${colors.white} 0% 0% no-repeat padding-box;
   border: 1px solid ${colors.borderColorBase};

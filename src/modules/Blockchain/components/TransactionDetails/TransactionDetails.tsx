@@ -11,11 +11,11 @@ import { useTransactionDetails } from "./hooks";
 
 type Props = {
   block: number;
-  transaction: string;
+  transactionId: string;
 };
 export const TransactionDetails = ({
   block,
-  transaction,
+  transactionId,
 }: Props): JSX.Element => {
   const {
     blockTransactions,
@@ -23,17 +23,20 @@ export const TransactionDetails = ({
     hasNextTransition,
     hasPreviousTransition,
     loading,
-  } = useTransactionDetails(block, parseInt(transaction));
+    trxInBlock,
+    nextTransactionId,
+    previousTransactionId,
+  } = useTransactionDetails(block, transactionId);
 
   const renderPreviousTransaction = hasPreviousTransition ? (
-    <Link href={`/blockchain/${Number(block)}/${Number(transaction) - 1}`}>
+    <Link href={`/blockchain/${Number(block)}/${previousTransactionId}`}>
       <LeftOutlined />
     </Link>
   ) : (
     ""
   );
   const renderNextTransaction = hasNextTransition ? (
-    <Link href={`/blockchain/${Number(block)}/${Number(transaction) + 1}`}>
+    <Link href={`/blockchain/${Number(block)}/${nextTransactionId}`}>
       <RightOutlined />
     </Link>
   ) : (
@@ -56,7 +59,7 @@ export const TransactionDetails = ({
                   {counterpart.translate(
                     `pages.blocks.transaction_details.transaction`
                   )}{" "}
-                  {transaction} of {blockTransactions.length}
+                  {trxInBlock + 1} of {blockTransactions.length}
                 </span>
               </Styled.BlockNumber>
               <Styled.BlockNumber>
@@ -92,14 +95,14 @@ export const TransactionDetails = ({
             statsData={[transactionDetails.operations.length]}
           />
         </Styled.StatsCardsDeck>
-        {/* <Styled.BlockInfo>
+        <Styled.BlockInfo>
           <Styled.BlockInfoTitle>
             {counterpart.translate(
               `pages.blocks.transaction_details.transaction_id`
             )}
           </Styled.BlockInfoTitle>
           <p>{transactionDetails.id}</p>
-        </Styled.BlockInfo> */}
+        </Styled.BlockInfo>
         <Styled.TwoColumns>
           <Styled.BlockInfo>
             <Styled.BlockInfoTitle>

@@ -1,4 +1,5 @@
 import counterpart from "counterpart";
+import Link from "next/link";
 import { useCallback } from "react";
 
 import {
@@ -39,7 +40,7 @@ export const ActivityAndNotificationList = ({
       }
       return (
         <Styled.ActivityListItem key={activityAndNotificationRow.key}>
-          <Styled.ActivitysItemContent>
+          <Styled.ActivityItemContent>
             <div className="activity-info">
               <span className="activity-info-title">{columns[0].title()}</span>
               <span className="activity-info-value">
@@ -62,6 +63,16 @@ export const ActivityAndNotificationList = ({
             </div>
             <div className="activity-info">
               <span className="activity-info-title">{columns[4].title()}</span>
+              <span className="activity-info-value">
+                <Link
+                  href={`blockchain/${activityAndNotificationRow.block_num}/${activityAndNotificationRow.transaction_id}`}
+                >
+                  {activityAndNotificationRow.transaction_id}
+                </Link>
+              </span>
+            </div>
+            <div className="activity-info">
+              <span className="activity-info-title">{columns[5].title()}</span>
               <span className="activity-info-value">
                 {activityAndNotificationRow.fee}
               </span>
@@ -96,7 +107,7 @@ export const ActivityAndNotificationList = ({
             ) : (
               ""
             )}
-          </Styled.ActivitysItemContent>
+          </Styled.ActivityItemContent>
         </Styled.ActivityListItem>
       );
     },

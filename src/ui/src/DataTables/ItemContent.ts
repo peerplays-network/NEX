@@ -16,6 +16,7 @@ export const DataItemContent = styled.div`
       color: ${colors.textColorSecondary};
     }
     .item-info-value {
+      word-break: break-all;
       font-weight: 500;
       .ant-tag {
         padding: 5px 15px;

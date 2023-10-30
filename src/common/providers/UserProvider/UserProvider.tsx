@@ -14,6 +14,7 @@ import {
   Account,
   Asset,
   BitcoinSidechainAccounts,
+  EthereumSidechainAccounts,
   FullAccount,
   KeyType,
   SidechainAccount,
@@ -27,32 +28,22 @@ type Props = {
 
 const defaultUserState: UserContextType = {
   localStorageAccount: "",
+  setLocalStorageAccount: function (value: string): void {
+    throw new Error(`Function not implemented. ${value}`);
+  },
+
   id: "",
   name: "",
   assets: [],
   password: "",
   account: undefined,
   keyType: "",
-  hasBTCDepositAddress: false,
-  hasBTCWithdrawPublicKey: false,
-  bitcoinSidechainAccounts: undefined,
-  setBitcoinSidechainAccounts: function (value: BitcoinSidechainAccounts) {
-    throw new Error(`Function not implemented. ${value},`);
-  },
-  getSidechainAccounts: function (accountId: string) {
-    throw new Error(`Function not implemented. ${accountId},`);
-  },
-  sidechainAccounts: [],
-  bitcoinSidechainAccount: undefined,
-  loadingSidechainAccounts: true,
+
   updateAccount: function (id: string, name: string, assets: Asset[]): void {
     throw new Error(`Function not implemented. ${id},${name}, ${assets}`);
   },
   setAssets: function (assets: Asset[]): void {
     throw new Error(`Function not implemented. ${assets}`);
-  },
-  setLocalStorageAccount: function (value: string): void {
-    throw new Error(`Function not implemented. ${value}`);
   },
   savePassword: function (password: string, keyType: KeyType) {
     throw new Error(`Function not implemented. ${password} ${keyType}`);
@@ -60,17 +51,37 @@ const defaultUserState: UserContextType = {
   removePassword: function () {
     throw new Error(`Function not implemented.`);
   },
+
+  getSidechainAccounts: function (accountId: string) {
+    throw new Error(`Function not implemented. ${accountId},`);
+  },
+  sidechainAccounts: {},
+  loadingSidechainAccounts: true,
+
+  sessionBitcoinSidechainAccounts: undefined,
+  setSessionBitcoinSidechainAccounts: function (
+    _value: BitcoinSidechainAccounts
+  ) {
+    throw new Error(`Function not implemented.`);
+  },
+  sessionEthereumSidechainAccounts: undefined,
+  setSessionEthereumSidechainAccounts: function (
+    _value: EthereumSidechainAccounts
+  ) {
+    throw new Error(`Function not implemented.`);
+  },
 };
 
 const UserContext = createContext<UserContextType>(defaultUserState);
 
 export const UserProvider = ({ children }: Props): JSX.Element => {
-  const [localStorageAccount, setLocalStorageAccount] = useLocalStorage(
-    "current_account"
-  ) as [string, (value: string) => void];
   const { formAssetBalanceById } = useAsset();
   const { dbApi } = usePeerplaysApiContext();
   const { settings } = useAppSettingsContext();
+
+  const [localStorageAccount, setLocalStorageAccount] = useLocalStorage(
+    "current_account"
+  ) as [string, (value: string) => void];
 
   const [id, setId] = useState<string>("");
   const [name, setName] = useState<string>("");
@@ -79,22 +90,27 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
   const [keyType, setKeyType] = useState<KeyType>("");
   const passwordTimeout = useRef<NodeJS.Timeout>();
   const [account, setAccount] = useState<Account | undefined>();
-  const [sidechainAccounts, setSidechainAccounts] = useState<
-    SidechainAccount[]
-  >([]);
-  const [bitcoinSidechainAccount, setBitcoinSidechainAccount] =
-    useState<SidechainAccount>();
+
   const [loadingSidechainAccounts, setLoadingSidechainAccounts] =
     useState<boolean>(true);
-  const [hasBTCDepositAddress, setHasBTCDepositAddress] =
-    useState<boolean>(false);
-  const [hasBTCWithdrawPublicKey, setHasBTCWithdrawPublicKey] =
-    useState<boolean>(false);
-  const [bitcoinSidechainAccounts, setBitcoinSidechainAccounts] =
+  const [sidechainAccounts, setSidechainAccounts] = useState<{
+    [sidechain: string]: {
+      account: SidechainAccount;
+      hasDepositAddress: boolean;
+    };
+  }>({});
+  const [sessionBitcoinSidechainAccounts, setSessionBitcoinSidechainAccounts] =
     useSessionStorage("bitcoinSidechainAccounts") as [
       BitcoinSidechainAccounts,
       (value: BitcoinSidechainAccounts) => void
     ];
+  const [
+    sessionEthereumSidechainAccounts,
+    setSessionEthereumSidechainAccounts,
+  ] = useSessionStorage("ethereumSidechainAccounts") as [
+    EthereumSidechainAccounts,
+    (value: EthereumSidechainAccounts) => void
+  ];
 
   const getSidechainAccounts = useCallback(
     async (accountId: string) => {
@@ -103,26 +119,23 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
         const accounts = (await dbApi("get_sidechain_addresses_by_account", [
           accountId,
         ])) as SidechainAccount[];
-        setSidechainAccounts(accounts);
         if (accounts && accounts.length) {
-          const bitcoinSidechain = accounts.find(
-            (account) => account.sidechain === "bitcoin"
-          );
-          if (bitcoinSidechain) {
-            setBitcoinSidechainAccount(bitcoinSidechain);
-            if (
-              bitcoinSidechain.deposit_address &&
-              bitcoinSidechain.deposit_address !== ""
-            ) {
-              setHasBTCDepositAddress(true);
-            }
-            if (
-              bitcoinSidechain.withdraw_public_key &&
-              bitcoinSidechain.withdraw_public_key !== ""
-            ) {
-              setHasBTCWithdrawPublicKey(true);
-            }
-          }
+          const sidechainAccounts = {} as {
+            [sidechain: string]: {
+              account: SidechainAccount;
+              hasDepositAddress: boolean;
+            };
+          };
+          accounts.forEach((account) => {
+            sidechainAccounts[account.sidechain] = {
+              account: account,
+              hasDepositAddress:
+                account.deposit_address && account.deposit_address !== ""
+                  ? true
+                  : false,
+            };
+          });
+          setSidechainAccounts(sidechainAccounts);
         }
         setLoadingSidechainAccounts(false);
       } catch (e) {
@@ -130,34 +143,7 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
         setLoadingSidechainAccounts(false);
       }
     },
-    [
-      dbApi,
-      setSidechainAccounts,
-      setHasBTCDepositAddress,
-      setLoadingSidechainAccounts,
-      setHasBTCWithdrawPublicKey,
-      setBitcoinSidechainAccount,
-    ]
-  );
-
-  const updateSidechainAccounts = useCallback(
-    (
-      sidechainAccounts: SidechainAccount[],
-      bitcoinSidechainAccount: SidechainAccount | undefined,
-      hasBTCDepositAddress: boolean,
-      hasBTCWithdrawPublicKey: boolean
-    ) => {
-      setSidechainAccounts(sidechainAccounts);
-      setBitcoinSidechainAccount(bitcoinSidechainAccount);
-      setHasBTCDepositAddress(hasBTCDepositAddress);
-      setHasBTCWithdrawPublicKey(hasBTCWithdrawPublicKey);
-    },
-    [
-      setSidechainAccounts,
-      setBitcoinSidechainAccount,
-      setHasBTCDepositAddress,
-      setHasBTCWithdrawPublicKey,
-    ]
+    [dbApi, setSidechainAccounts, setLoadingSidechainAccounts]
   );
 
   const updateAccount = useCallback(
@@ -267,7 +253,7 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
     if (id !== null && id !== "") {
       getSidechainAccounts(id);
     } else {
-      updateSidechainAccounts([], undefined, false, false);
+      setSidechainAccounts({});
     }
   }, [id, getSidechainAccounts]);
 
@@ -285,14 +271,13 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
       setAssets,
       savePassword,
       removePassword,
-      hasBTCDepositAddress,
-      hasBTCWithdrawPublicKey,
       getSidechainAccounts,
       loadingSidechainAccounts,
       sidechainAccounts,
-      bitcoinSidechainAccount,
-      bitcoinSidechainAccounts,
-      setBitcoinSidechainAccounts,
+      sessionBitcoinSidechainAccounts,
+      setSessionBitcoinSidechainAccounts,
+      sessionEthereumSidechainAccounts,
+      setSessionEthereumSidechainAccounts,
     };
   }, [
     id,
@@ -307,14 +292,13 @@ export const UserProvider = ({ children }: Props): JSX.Element => {
     setAssets,
     savePassword,
     removePassword,
-    hasBTCDepositAddress,
-    hasBTCWithdrawPublicKey,
     getSidechainAccounts,
     loadingSidechainAccounts,
     sidechainAccounts,
-    bitcoinSidechainAccount,
-    bitcoinSidechainAccounts,
-    setBitcoinSidechainAccounts,
+    sessionBitcoinSidechainAccounts,
+    setSessionBitcoinSidechainAccounts,
+    sessionEthereumSidechainAccounts,
+    setSessionEthereumSidechainAccounts,
   ]);
 
   return (

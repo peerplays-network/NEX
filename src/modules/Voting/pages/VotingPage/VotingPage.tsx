@@ -6,7 +6,7 @@ import React, { useState } from "react";
 
 import { Layout, MobileTabBar } from "../../../../common/components";
 import { useViewportContext } from "../../../../common/providers";
-import { VoteType } from "../../../../common/types";
+import { isSonAccount, MemberType } from "../../../../common/types";
 import { PageTabs } from "../../../../ui/src";
 import { GPOSTab, ProxyTab, VoteTab } from "../../components";
 import { useVoting } from "../../hooks";
@@ -17,8 +17,11 @@ import { useVotingPageMeta } from "./hooks";
 const VotingPage: NextPage = () => {
   const router = useRouter();
   const [visible, setVisible] = useState<boolean>(false);
-  const voteTabs: VoteType[] = ["witnesses", "sons", "committees"];
-  const voteIdentifiers = [1, 3, 0];
+  const voteTabs: { key: MemberType; identifiers: number[] }[] = [
+    { key: "witnesses", identifiers: [1] },
+    { key: "sons", identifiers: [3, 4, 5] },
+    { key: "committees", identifiers: [0] },
+  ];
   const { tab } = router.query;
   const { pageMeta } = useVotingPageMeta(tab as string);
   const { md } = useViewportContext();
@@ -50,31 +53,32 @@ const VotingPage: NextPage = () => {
       key: "gpos",
       children: <GPOSTab loading={loadingUserVotes} gposInfo={gposInfo} />,
     },
-    ...voteTabs.map((voteTab, index) => {
+    ...voteTabs.map((voteTab) => {
       return {
         label: capitalize(
-          counterpart.translate(`pages.voting.lower_case_${voteTab}`)
+          counterpart.translate(`pages.voting.lower_case_${voteTab.key}`)
         ),
-        key: voteTab,
+        key: voteTab.key,
         children: (
           <VoteTab
-            tab={voteTab}
+            tab={voteTab.key}
             votesLoading={!voteTabLoaded}
             fullAccount={fullAccount}
-            tabAllMembers={allMembers.filter(
-              (member) =>
-                parseInt(member.vote_id.split(":")[0]) ===
-                voteIdentifiers[index]
+            tabAllMembers={allMembers.filter((member) =>
+              isSonAccount(member)
+                ? voteTab.key === "sons"
+                : voteTab.identifiers.includes(
+                    parseInt(member.vote_id.split(":")[0])
+                  )
             )}
-            tabServerApprovedVotesIds={serverApprovedVotesIds.filter(
-              (voteId) =>
-                parseInt(voteId.split(":")[0]) === voteIdentifiers[index]
+            tabServerApprovedVotesIds={serverApprovedVotesIds.filter((voteId) =>
+              voteTab.identifiers.includes(parseInt(voteId.split(":")[0]))
             )}
             allMembersIds={allMembersIds}
             getUserVotes={getUserVotes}
             totalGpos={gposInfo.gposBalance}
             proxy={proxy}
-            key={voteTab}
+            key={voteTab.key}
           />
         ),
       };

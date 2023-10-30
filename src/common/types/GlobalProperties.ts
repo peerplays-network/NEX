@@ -1,10 +1,25 @@
+import { Sidechain } from "./SonAccount";
+
 export type GlobalProperties = {
   active_committee_members: string[];
-  active_sons: ActiveSon[];
+  active_sons: [Sidechain, ActiveSon[]][];
   active_witnesses: string[];
   id: string;
   parameters: GlobalPropertiesParameters;
   next_available_vote_id: number;
+};
+
+export type ChainProperties = {
+  chain_id: string;
+  immutable_parameters: ImmutableParameters;
+};
+
+export type ImmutableParameters = {
+  min_committee_member_count: number;
+  min_witness_count: number;
+  min_son_count: number;
+  num_special_accounts: number;
+  num_special_assets: number;
 };
 
 export type ActiveSon = {
@@ -30,14 +45,19 @@ export type GlobalPropertiesParameters = {
   extensions: {
     account_roles_max_lifetime: number;
     account_roles_max_per_account: number;
+    betting_rake_fee_percentage: number;
     btc_asset: string;
+    eth_asset: string;
     gpos_period: number;
     gpos_period_start: number;
     gpos_subperiod: number;
     gpos_vesting_lockin_period: number;
     hbd_asset: string;
     hive_asset: string;
+    live_betting_delay_time: number;
+    max_bet_multiplier: number;
     maximum_son_count: number;
+    min_bet_multiplier: number;
     rbac_max_account_authority_lifetime: number;
     rbac_max_authorities_per_permission: number;
     rbac_max_permissions_per_account: number;

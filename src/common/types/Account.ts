@@ -1,18 +1,37 @@
-import { Vote } from ".";
+import {
+  CallOrder,
+  ForceSettlement,
+  LimitOrder,
+  Member,
+  VestingBalance,
+  WithdrawPermission,
+} from ".";
 
 export type FullAccount = {
   account: Account;
+  assets: string[];
+  balances: AccountBalance[];
+  call_orders: CallOrder[];
+  cashback_balance?: VestingBalance;
+  vesting_balances: VestingBalance[];
   lifetime_referrer_name: string;
   limit_orders: LimitOrder[];
+  pending_dividend_payments: PendingDividendPayoutBalanceForHolder[];
+  proposals: any[];
   referrer_name: string;
   registrar_name: string;
-  balances: Balance[];
+  settle_orders: ForceSettlement[];
   statistics: AccountStatistics;
-  votes: Vote[];
+  votes: Member[];
+  withdraws: WithdrawPermission[];
 };
 
 export type Account = {
-  active: Permissions;
+  active: Authority;
+  active_special_authority: [number, SpecialAuthority];
+  blacklisted_accounts: string[];
+  blacklisting_accounts: string[];
+  cashback_vb: string;
   id: string;
   lifetime_referrer: string;
   lifetime_referrer_fee_percentage: number;
@@ -20,15 +39,18 @@ export type Account = {
   name: string;
   network_fee_percentage: number;
   options: AccountOptions;
-  owner: Permissions;
+  owner: Authority;
+  owner_special_authority: [number, SpecialAuthority];
   referrer: string;
   referrer_rewards_percentage: number;
   registrar: string;
   statistics: string;
   top_n_control_flags: number;
+  whitelisting_accounts: string[];
+  whitelisted_accounts: string[];
 };
 
-export type Balance = {
+export type AccountBalance = {
   asset_type: string;
   balance: number;
   id: string;
@@ -36,43 +58,40 @@ export type Balance = {
   owner: string;
 };
 
-export type LimitOrder = {
-  deferred_fee: number;
-  expiration: string;
-  for_sale: number;
-  id: string;
-  sell_price: {
-    base: {
-      amount: number;
-      asset_id: string;
-    };
-    quote: {
-      amount: number;
-      asset_id: string;
-    };
-  };
-  seller: string;
+export type PendingDividendPayoutBalanceForHolder = {
+  owner: string;
+  dividend_holder_asset_type: string;
+  dividend_payout_asset_type: string;
+  pending_balance: number;
 };
 
 export type PublicKeys = { type: string; key: string };
 
 export type GeneratedKey = { label: string; key: string };
 
-export type Permissions = {
+// eslint-disable-next-line @typescript-eslint/ban-types
+export type NoSpecialAuthority = {};
+export type TopHoldersSpecialAuthority = {
+  asset: string;
+  num_top_holders: number;
+};
+export type SpecialAuthority = NoSpecialAuthority | TopHoldersSpecialAuthority;
+
+export type Authority = {
   account_auths: [string, number][];
   address_auths: [string, number][];
   key_auths: [string, number][];
   weight_threshold: number;
 };
 
-export type UserPermissions = {
-  active: Permissions | string;
-  memo: Permissions | string;
-  owner: Permissions | string;
+export type AccountAuthorities = {
+  active: Authority | string;
+  memo: Authority | string;
+  owner: Authority | string;
 };
 
 export type AccountOptions = {
-  extensions: any[];
+  extensions: any;
   memo_key: string;
   num_committee: number;
   num_witness: number;
@@ -125,6 +144,9 @@ export type ActivityRow = {
   type: string;
   info: string;
   id: string;
+  block_num: number;
+  trx_in_block: number;
+  transaction_id: string;
   fee: string;
   status: boolean;
 };
@@ -156,5 +178,17 @@ export type BitcoinSidechainAccounts =
 export type BitcoinAccount = {
   address: string;
   pubKey: string;
+  privateKey: string;
+};
+
+export type EthereumSidechainAccounts =
+  | {
+      deposit: EthereumAccount;
+      withdraw: EthereumAccount;
+    }
+  | undefined;
+
+export type EthereumAccount = {
+  address: string;
   privateKey: string;
 };

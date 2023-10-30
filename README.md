@@ -53,6 +53,9 @@ NEXT_PUBLIC_DEFAULT_QUOTE=''
 # Full URL to the blockchain's faucet
 NEXT_PUBLIC_FAUCET_URL=''
 
+# Ethereum primary wallet address
+NEXT_PUBLIC_ETHEREUM_PRIMARY_WALLET=''
+
 # Chain ID of the blockchain
 NEXT_PUBLIC_DEFAULT_CHAIN_ID=''
 ```

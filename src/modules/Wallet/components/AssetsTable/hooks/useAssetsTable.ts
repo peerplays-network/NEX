@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { utils } from "../../../../../api/utils";
 import { useAccount, useAsset } from "../../../../../common/hooks";
 import { useUserContext } from "../../../../../common/providers";
-import { Balance, FullAccount } from "../../../../../common/types";
+import { AccountBalance, FullAccount } from "../../../../../common/types";
 import { AssetColumnType, createAssetsColumns } from "../../AssetsColumns";
 
 import { AssetTableRow, UseAssetsTabResult } from "./useAssetsTable.types";
@@ -28,10 +28,10 @@ export function useAssetsTable({
   const [loading, setLoading] = useState<boolean>(true);
   const { localStorageAccount } = useUserContext();
   const { getFullAccount } = useAccount();
-  const { getAssetById, setPrecision, roundNum } = useAsset();
+  const { getAssetById, setPrecision, limitByPrecision } = useAsset();
 
   const formAssetRow = useCallback(
-    async (balance: Balance): Promise<AssetTableRow> => {
+    async (balance: AccountBalance): Promise<AssetTableRow> => {
       const asset = await getAssetById(balance.asset_type);
       const available = setPrecision(false, balance.balance, asset?.precision);
       let inOrders = 0;
@@ -49,9 +49,9 @@ export function useAssetsTable({
       return {
         key: asset?.id as string,
         symbol: asset?.symbol as string,
-        name: utils.getBlockchainFromSymbol(asset?.symbol as string),
+        name: utils.getNativeBlockchainFromAssetSymbol(asset?.symbol as string),
         available: available,
-        inOrders: roundNum(inOrders, asset?.precision),
+        inOrders: limitByPrecision(inOrders, asset?.precision),
       };
     },
     [fullAccount, setPrecision]
@@ -61,11 +61,11 @@ export function useAssetsTable({
     if (fullAccount) {
       const assetsRows = await Promise.all(
         fullAccount.balances
-          .filter(async (balance: Balance) => {
+          .filter(async (balance: AccountBalance) => {
             const asset = await getAssetById(balance.asset_type);
             return asset?.symbol !== filterAsset;
           })
-          .map(async (balance: Balance) => {
+          .map(async (balance: AccountBalance) => {
             return await formAssetRow(balance);
           })
       );

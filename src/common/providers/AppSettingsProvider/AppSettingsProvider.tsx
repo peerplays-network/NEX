@@ -12,9 +12,9 @@ import React, {
 
 import {
   config,
+  DEFAULT_CHAIN_ID,
   defaultApiLatencies,
   defaultApiSettings,
-  defaultChainId,
   defaultExchanges,
   defaultLatencyPreferences,
   defaultLocales,
@@ -111,6 +111,7 @@ export function AppSettingsProvider({
     [_setConnectedNode]
   );
 
+  // We use versioning for backward-incompatible changes in local storage
   const setLocalForceVersion = useCallback(() => {
     if (localForceVersion !== config.forceVersion) {
       _setLocalForceVersion(config.forceVersion as string);
@@ -118,23 +119,23 @@ export function AppSettingsProvider({
   }, [localForceVersion, config, config.forceVersion, _setLocalForceVersion]);
 
   const setChainId = useCallback(() => {
-    if (chainId !== defaultChainId) {
-      _setChainId(defaultChainId as string);
+    if (chainId !== DEFAULT_CHAIN_ID) {
+      _setChainId(DEFAULT_CHAIN_ID as string);
     }
-  }, [chainId, _setChainId, defaultChainId]);
+  }, [chainId, _setChainId, DEFAULT_CHAIN_ID]);
 
   const initCache = useCallback(() => {
     if (
-      chainId !== defaultChainId ||
+      chainId !== DEFAULT_CHAIN_ID ||
       !cache ||
       !cache.created ||
       getPassedTime(new Date(cache.created)) > 24 * 60 * 60 * 1000
     )
       setCache({ created: new Date().getTime(), assets: [] } as Cache);
-  }, [cache, setCache, chainId, defaultChainId]);
+  }, [cache, setCache, chainId, DEFAULT_CHAIN_ID]);
 
   const initSettings = useCallback(() => {
-    if (chainId !== defaultChainId) {
+    if (chainId !== DEFAULT_CHAIN_ID) {
       setSettings(defaultSettings);
       setExchanges(defaultExchanges);
     } else if (localForceVersion !== config.forceVersion) {
@@ -149,7 +150,7 @@ export function AppSettingsProvider({
       });
     }
   }, [
-    defaultChainId,
+    DEFAULT_CHAIN_ID,
     chainId,
     setSettings,
     defaultSettings,
@@ -162,7 +163,7 @@ export function AppSettingsProvider({
   ]);
 
   const initApiSettings = useCallback(() => {
-    if (chainId !== defaultChainId) {
+    if (chainId !== DEFAULT_CHAIN_ID) {
       setApiSettings(defaultApiSettings);
       setApiLatencies(defaultApiLatencies);
       setLatencyPreferences(defaultLatencyPreferences);
@@ -186,7 +187,7 @@ export function AppSettingsProvider({
     }
   }, [
     chainId,
-    defaultChainId,
+    DEFAULT_CHAIN_ID,
     setApiSettings,
     setApiLatencies,
     setLatencyChecks,

@@ -5,10 +5,7 @@ import { useCallback } from "react";
 import { renderPaginationItem, UserLinkExtractor } from "../../../..";
 import { Checkbox, List, Switch, Tooltip } from "../../../../../../ui/src";
 import { useFormDate } from "../../../../../hooks";
-import {
-  useNotificationsContext,
-  useUserContext,
-} from "../../../../../providers";
+import { useNotificationsContext } from "../../../../../providers";
 import { Notification } from "../../../../../types";
 
 import * as Styled from "./NotificationMenu.styled";
@@ -27,7 +24,6 @@ export const NotificationMenu = (): JSX.Element => {
       notifications,
       loadingNotifications,
     });
-  const { localStorageAccount } = useUserContext();
   const { formLocalDate } = useFormDate();
 
   const today = new Date();
@@ -163,7 +159,7 @@ export const NotificationMenu = (): JSX.Element => {
       </Styled.ListsContainer>
 
       <Styled.AllActivityContainer>
-        <Link href={`/user/${localStorageAccount}`}>
+        <Link href={`/profile?tab=activities`}>
           {counterpart.translate(`links.see_all_account_activity`)}
         </Link>
       </Styled.AllActivityContainer>

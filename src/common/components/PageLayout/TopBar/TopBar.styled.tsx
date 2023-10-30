@@ -45,14 +45,29 @@ export const TopBar = styled.nav`
       }
     }
     .dex-logo {
-      margin: 0 0 0 6px;
       font-size: 1.25rem;
       font-weight: 200;
       color: #ff903e;
       letter-spacing: 1px;
-      ${breakpoint.sm} {
-        margin: 0 0 0 15px;
+      &.test {
+        margin: 0 0 15px 6px;
+        ${breakpoint.sm} {
+          margin: 0px 0px 14px 10px;
+        }
       }
+      &.main {
+        margin: 0px 0px 0px 6px;
+        ${breakpoint.sm} {
+          margin: 0 0 0 10px;
+        }
+      }
+    }
+    .network-heading {
+      color: ${colors.white};
+      font-size: 0.9rem;
+      font-weight: 200;
+      padding: 0;
+      margin: 0;
     }
   }
   .topbar-right {
@@ -63,4 +78,10 @@ export const TopBar = styled.nav`
   ${breakpoint.sm} {
     border: none;
   }
+`;
+
+export const HeaderWrapper = styled.div`
+  display: flex;
+  flex-direction: column;
+  line-height: 1;
 `;

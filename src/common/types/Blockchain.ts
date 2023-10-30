@@ -7,13 +7,30 @@ export type Block = {
   timestamp: string | Date;
   transaction_merkle_root: string;
   transactions: any[];
-  transaction_ids: string[];
+  //This is id of witness
   witness: string;
   witness_account_name: string;
   witness_signature: string;
 };
 
-export type BlockData = {
+export type Block2 = {
+  id?: number;
+  block_id: string;
+  extensions: any[];
+  next_secret_hash?: string;
+  previous: string;
+  previous_secret: string;
+  signing_key: string;
+  timestamp: string | Date;
+  transaction_ids: string[];
+  transaction_merkle_root: string;
+  transactions: any[];
+  witness: string;
+  witness_account_name: string;
+  witness_signature: string;
+};
+
+export type DynamicGlobalProperties = {
   accounts_registered_this_interval: number;
   current_aslot: number;
   current_witness: string;
@@ -32,7 +49,7 @@ export type BlockData = {
   witness_budget: number;
 };
 
-export type Dynamic = {
+export type AssetDynamicData = {
   accumulated_fees: number;
   confidential_supply: number;
   current_supply: string;

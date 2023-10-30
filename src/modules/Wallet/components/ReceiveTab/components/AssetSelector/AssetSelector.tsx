@@ -20,7 +20,9 @@ export const AssetSelector = ({ assetSymbol }: Props): JSX.Element => {
       {allAssets.map((asset) => {
         return (
           <Styled.AssetOption key={asset.id} value={asset.symbol}>
-            {`${asset.symbol} - ${utils.getBlockchainFromSymbol(asset.symbol)}`}
+            {`${asset.symbol} - ${utils.getNativeBlockchainFromAssetSymbol(
+              asset.symbol
+            )}`}
           </Styled.AssetOption>
         );
       })}

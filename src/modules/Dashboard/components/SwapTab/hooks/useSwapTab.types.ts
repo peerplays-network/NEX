@@ -18,7 +18,7 @@ export type UseSwapResult = {
   dispatchTransactionMessage: Dispatch<TransactionMessageAction>;
   allAssets: Asset[];
   swapOrderFee: number;
-  price: number;
+  price?: string;
   loadingSwapData: boolean;
   loadingAssets: boolean;
   handleValuesChange: (changedValues: {

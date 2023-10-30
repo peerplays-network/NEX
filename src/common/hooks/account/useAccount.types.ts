@@ -1,4 +1,10 @@
-import { Account, FullAccount, KeyType, WhaleVaultPubKeys } from "../../types";
+import {
+  Account,
+  FullAccount,
+  KeyType,
+  VestingBalance,
+  WhaleVaultPubKeys,
+} from "../../types";
 
 export type UseAccountResult = {
   formAccountByName: (name: string, subscription: boolean) => Promise<void>;
@@ -38,4 +44,7 @@ export type UseAccountResult = {
     idsOrNames: string[]
   ) => Promise<(Account | undefined)[] | undefined>;
   getUserNamesByIds: (ids: string[]) => Promise<string[]>;
+  getVestingBalances: (
+    accountNameOrId: string
+  ) => Promise<VestingBalance[] | undefined>;
 };

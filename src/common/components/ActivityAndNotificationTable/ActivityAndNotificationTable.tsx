@@ -41,7 +41,7 @@ export const ActivityAndNotificationTable = ({
     notifications,
     markTheNotificationAsReadOrUnread,
   });
-  const { sm } = useViewportContext();
+  const { md } = useViewportContext();
   const componentRef = useRef<HTMLDivElement>(null);
 
   return (
@@ -88,7 +88,7 @@ export const ActivityAndNotificationTable = ({
       ) : (
         ""
       )}
-      {sm ? (
+      {md ? (
         <ActivityAndNotificationList
           activitiesAndNotificationsRows={searchDataSource}
           loading={loading}

@@ -52,16 +52,13 @@ export function usePowerUpForm({
     (direction: string) => {
       const minusDirection =
         Number(depositAmount) >= 1
-          ? limitByPrecision(
-              String(Number(depositAmount) - 1),
-              defaultAsset?.precision
-            )
+          ? limitByPrecision(Number(depositAmount) - 1, defaultAsset?.precision)
           : "0";
       powerUpForm.setFieldsValue({
         depositAmount:
           direction === "+"
             ? limitByPrecision(
-                String(Number(depositAmount) + 1),
+                Number(depositAmount) + 1,
                 defaultAsset?.precision
               )
             : minusDirection,
@@ -206,7 +203,7 @@ export function usePowerUpForm({
         depositAmount: limitByPrecision(depositAmount, defaultAsset?.precision),
       });
       const newBalance = limitByPrecision(
-        String(gposBalances?.openingBalance + Number(depositAmount)),
+        gposBalances?.openingBalance + Number(depositAmount),
         defaultAsset?.precision
       );
       if (userAvailableBalance >= 0) {

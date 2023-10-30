@@ -19,6 +19,7 @@ export function useBlockDetails(block: number): UseBlockDetailsResult {
     blockID: block,
     time: "",
     witness: "",
+    signingKey: "",
     witnessSignature: "",
     transactions: [],
   });
@@ -26,19 +27,24 @@ export function useBlockDetails(block: number): UseBlockDetailsResult {
   const [loadingSideBlocks, setLoadingSideBlocks] = useState<boolean>(true);
 
   const { formLocalDate } = useFormDate();
-  const { getBlock, getBlockData } = useBlockchain();
+  const { getBlock2, getDynamicGlobalProperties } = useBlockchain();
 
   const getBlockDetails = useCallback(async () => {
     try {
-      const rawBlock = await getBlock(Number(block));
+      const rawBlock = await getBlock2(Number(block));
       if (rawBlock) {
         const transactions: TransactionRow[] = rawBlock.transactions.map(
           (transaction, index) => {
             return {
               key: index + 1,
               rank: index + 1,
-              id: index.toString(),
-              expiration: transaction.expiration,
+              id: rawBlock.transaction_ids[index],
+              expiration: formLocalDate(transaction.expiration, [
+                "month",
+                "date",
+                "year",
+                "time",
+              ]),
               operations: transaction.operations,
               operationResults: transaction.operation_results,
               refBlockPrefix: transaction.ref_block_prefix,
@@ -60,25 +66,27 @@ export function useBlockDetails(block: number): UseBlockDetailsResult {
             "year",
             "time",
           ]),
-          witness: rawBlock.witness_account_name,
+          witness: rawBlock.witness,
+          witness_account_name: rawBlock.witness_account_name,
+          signingKey: rawBlock.signing_key,
           witnessSignature: rawBlock.witness_signature,
           transactions: transactions,
-        };
+        } as BlockDetailsType;
       }
     } catch (e) {
       console.log(e);
     }
-  }, [block, getBlock]);
+  }, [block, getBlock2]);
 
   const checkSideBlocksExistence = useCallback(async () => {
     let hasPreviousBlock = false;
     let hasNextBlock = false;
     try {
-      const blockData = await getBlockData();
+      const dgpo = await getDynamicGlobalProperties();
       if (block > 1) {
         hasPreviousBlock = true;
       }
-      if (blockData && block < blockData.head_block_number) {
+      if (dgpo && block < dgpo.head_block_number) {
         hasNextBlock = true;
       }
     } catch (e) {
@@ -88,7 +96,7 @@ export function useBlockDetails(block: number): UseBlockDetailsResult {
       hasPreviousBlock,
       hasNextBlock,
     };
-  }, [getBlockData, block]);
+  }, [getDynamicGlobalProperties, block]);
 
   useEffect(() => {
     let ignore = false;

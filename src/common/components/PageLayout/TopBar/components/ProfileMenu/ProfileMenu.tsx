@@ -54,17 +54,10 @@ export const ProfileMenu = (): JSX.Element => {
                 label={counterpart.translate(`pages.voting.heading`)}
               />
             </li>
-            {/* <li>
-              <MenuItem
-                href="/contacts"
-                icon={<Contacts className={"menu-icon"} />}
-                label="Contacts"
-              />
-            </li> */}
           </>
         ) : (
           <li className={"link"}>
-            <Link href={`/user/${localStorageAccount}`}>
+            <Link href={`/profile?tab=activities`}>
               {counterpart.translate(`links.see_all_account_activity`)}
             </Link>
           </li>
@@ -79,20 +72,24 @@ export const ProfileMenu = (): JSX.Element => {
         </li>
         {sm ? (
           <li className={"link"}>
-            <Link href={`/user/${localStorageAccount}`}>
+            <Link href={`/profile?tab=activities`}>
               {counterpart.translate(`links.see_all_account_activity`)}
             </Link>
           </li>
         ) : (
           " "
         )}
-        <li className={"logout"}>
-          <MenuItem
-            href="/logout"
-            icon={<PoweroffOutlined className={"menu-icon"} />}
-            label={counterpart.translate(`pages.logout.heading`)}
-          />
-        </li>
+        {!sm ? (
+          <li className={"logout"}>
+            <MenuItem
+              href="/logout"
+              icon={<PoweroffOutlined className={"menu-icon"} />}
+              label={counterpart.translate(`pages.logout.heading`)}
+            />
+          </li>
+        ) : (
+          ""
+        )}
       </ul>
     </Styled.ProfileMenu>
   );

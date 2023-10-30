@@ -23,7 +23,7 @@ export const ActivityListItem = styled(UiList.Item)`
   }
 `;
 
-export const ActivitysItemContent = styled.div`
+export const ActivityItemContent = styled.div`
   .activity-info {
     &:last-child {
       align-items: center;
@@ -39,6 +39,7 @@ export const ActivitysItemContent = styled.div`
       color: ${colors.textColorSecondary};
     }
     .activity-info-value {
+      word-break: break-all;
       font-weight: 500;
     }
   }
@@ -51,7 +52,7 @@ export const NotificationTableStatusButton = styled(Button)`
   margin: 0px;
   border: none;
   background: none;
-  boxshadow: none;
+  box-shadow: none;
   padding: 0;
   color: ${colors.primaryColor};
   text-align: right;

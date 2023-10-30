@@ -40,6 +40,7 @@ export type UseSendFormResult = {
   toAccount: string;
   selectedAssetPrecision: number;
   btcTransferFee: number;
+  ethTransferFee: number;
   afterTransactionModalClose?: () => void;
 };
 export type SendForm = {

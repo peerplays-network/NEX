@@ -1,4 +1,3 @@
-//done
 import counterpart from "counterpart";
 import { useRouter } from "next/router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -6,8 +5,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   BITCOIN_ASSET_SYMBOL,
   BITCOIN_NETWORK,
-  defaultNetwork,
+  BTC_DEFAULT_WITHDRAWAL_FEE,
+  BTC_MIN_WITHDRAWAL,
+  DEFAULT_NETWORK,
   defaultToken,
+  ETH_DEFAULT_WITHDRAWAL_FEE,
+  ETH_MIN_WITHDRAWAL,
+  ETHEREUM_ASSET_SYMBOL,
+  ETHEREUM_NETWORK,
   HIVE_NETWORK,
   SON_ACCOUNT_NAME,
 } from "../../../../../../../api/params";
@@ -17,13 +22,22 @@ import {
   useAccount,
   useAsset,
   useFees,
+  useSidechainApi,
   useSonNetwork,
   useTransactionBuilder,
   useTransactionMessage,
   useTransferTransactionBuilder,
 } from "../../../../../../../common/hooks";
-import { useUserContext } from "../../../../../../../common/providers";
-import { Account, Asset, SignerKey } from "../../../../../../../common/types";
+import {
+  useAssetsContext,
+  useUserContext,
+} from "../../../../../../../common/providers";
+import {
+  Account,
+  Asset,
+  Sidechain,
+  SignerKey,
+} from "../../../../../../../common/types";
 import { Form } from "../../../../../../../ui/src";
 
 import { SendForm, UseSendFormResult } from "./useSendForm.types";
@@ -31,22 +45,22 @@ import { SendForm, UseSendFormResult } from "./useSendForm.types";
 type Args = {
   assetSymbol?: string;
 };
-const BITCOIN_MIN_WITHDRAWAL = 0.001;
 
 export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
   const router = useRouter();
-  const { assets } = useUserContext();
+  const { assets, localStorageAccount, sidechainAccounts } = useUserContext();
   const [sendForm] = Form.useForm<SendForm>();
   const { limitByPrecision } = useAsset();
-  const { localStorageAccount, bitcoinSidechainAccount, hasBTCDepositAddress } =
-    useUserContext();
   const { formAccountBalancesByName, getAccountByName } = useAccount();
-  const { sonAccount, getSonNetworkStatus } = useSonNetwork();
+  const { sonAccount, isSidechainSonNetworkOk } = useSonNetwork();
   const { calculateTransferFee } = useFees();
   const { buildTransferTransaction } = useTransferTransactionBuilder();
   const { buildTrx, getTrxFee } = useTransactionBuilder();
   const { transactionMessageState, dispatchTransactionMessage } =
     useTransactionMessage();
+  const { sidechainAssets } = useAssetsContext();
+  const { estimateWithdrawalFeeBySidechain } = useSidechainApi();
+  const { setPrecision } = useAsset();
 
   const [selectedBlockchain, setSelectedBlockchain] = useState<string>();
   const [toAccount, setToAccount] = useState<Account>();
@@ -55,7 +69,12 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
   const [amount, setAmount] = useState<string>("0");
   const [feeAmount, setFeeAmount] = useState<number>(0);
   const [isSonNetworkOk, setIsSonNetworkOk] = useState<boolean>();
-  const [btcTransferFee, _setBtcTransferFee] = useState<number>(0.0003);
+  const [btcTransferFee, setBtcTransferFee] = useState<number>(
+    BTC_DEFAULT_WITHDRAWAL_FEE
+  );
+  const [ethTransferFee, setEthTransferFee] = useState<number>(
+    ETH_DEFAULT_WITHDRAWAL_FEE
+  );
   const afterTransactionModalClose = useRef<() => void>();
 
   const userAsset = useMemo(() => {
@@ -65,25 +84,13 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     return userAsset ? userAsset.precision : 5;
   }, [userAsset]);
 
-  const assetsBlockchains = useMemo<{
-    [assetSymbol: string]: string[];
-  }>(() => {
-    return {
-      BTC: [defaultNetwork, BITCOIN_NETWORK],
-      HIVE: [defaultNetwork, HIVE_NETWORK],
-      HBD: [defaultNetwork, HIVE_NETWORK],
-    };
-  }, [defaultNetwork, BITCOIN_NETWORK, HIVE_NETWORK]);
-
   const selectedAssetBlockchains = useMemo(() => {
     if (assetSymbol) {
-      return assetsBlockchains[assetSymbol]
-        ? assetsBlockchains[assetSymbol]
-        : [defaultNetwork];
+      return utils.getAssetBlockchains(assetSymbol);
     } else {
       return [];
     }
-  }, [assetSymbol, assetsBlockchains, defaultNetwork]);
+  }, [assetSymbol]);
 
   const [prevAssetSymbol, setPrevAssetSymbol] = useState<string | undefined>(
     assetSymbol
@@ -94,6 +101,12 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     setAmount("0");
     setToAccount(undefined);
   }
+  const bitcoinSidechainAccount = useMemo(() => {
+    return sidechainAccounts[Sidechain.BITCOIN];
+  }, [sidechainAccounts]);
+  const ethereumSidechainAccount = useMemo(() => {
+    return sidechainAccounts[Sidechain.ETHEREUM];
+  }, [sidechainAccounts]);
 
   const buildSendFormTransaction = useCallback(
     async (_to: string, _memo: string) => {
@@ -159,14 +172,26 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
   const onBlockchainChange = useCallback(
     (value: unknown) => {
       setSelectedBlockchain(value as string);
-      if (value !== defaultNetwork) {
+      if (value !== DEFAULT_NETWORK) {
         sendForm.setFieldsValue({
           memo: undefined,
         });
       }
-      if (value === BITCOIN_NETWORK && hasBTCDepositAddress) {
+      if (
+        value === BITCOIN_NETWORK &&
+        bitcoinSidechainAccount &&
+        bitcoinSidechainAccount.hasDepositAddress
+      ) {
         sendForm.setFieldsValue({
-          to: bitcoinSidechainAccount?.withdraw_address,
+          to: bitcoinSidechainAccount.account.withdraw_address,
+        });
+      } else if (
+        value === ETHEREUM_NETWORK &&
+        ethereumSidechainAccount &&
+        ethereumSidechainAccount.hasDepositAddress
+      ) {
+        sendForm.setFieldsValue({
+          to: ethereumSidechainAccount.account.withdraw_address,
         });
       } else {
         sendForm.setFieldsValue({
@@ -176,9 +201,9 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     },
     [
       setSelectedBlockchain,
-      hasBTCDepositAddress,
-      sendForm,
       bitcoinSidechainAccount,
+      ethereumSidechainAccount,
+      sendForm,
     ]
   );
 
@@ -195,7 +220,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
   );
   const handleToChange = useCallback(
     async (to: string) => {
-      if (selectedBlockchain === defaultNetwork) {
+      if (selectedBlockchain === DEFAULT_NETWORK) {
         const toAccount = await getAccountByName(to);
         setToAccount(toAccount);
         const { memo } = sendForm.getFieldsValue();
@@ -211,7 +236,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     },
     [
       selectedBlockchain,
-      defaultNetwork,
+      DEFAULT_NETWORK,
       getAccountByName,
       setToAccount,
       sendForm,
@@ -251,7 +276,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
       const values = sendForm.getFieldsValue();
       let _to = "";
       let _memo = "";
-      if (selectedBlockchain === defaultNetwork) {
+      if (selectedBlockchain === DEFAULT_NETWORK) {
         _to = values.to;
         _memo = values.memo ? values.memo : "";
       } else {
@@ -305,7 +330,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
       localStorageAccount,
       formAccountBalancesByName,
       selectedBlockchain,
-      defaultNetwork,
+      DEFAULT_NETWORK,
       SON_ACCOUNT_NAME,
       HIVE_NETWORK,
     ]
@@ -361,11 +386,25 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
       prevAssetSymbol === BITCOIN_ASSET_SYMBOL &&
       selectedBlockchain === BITCOIN_NETWORK
     ) {
-      if (Number(value) < BITCOIN_MIN_WITHDRAWAL) {
+      if (Number(value) < BTC_MIN_WITHDRAWAL) {
         return counterpart.translate(
           `field.errors.amount_should_greater_than`,
           {
-            amount: BITCOIN_MIN_WITHDRAWAL,
+            amount: BTC_MIN_WITHDRAWAL,
+          }
+        );
+      }
+    }
+
+    if (
+      prevAssetSymbol === ETHEREUM_ASSET_SYMBOL &&
+      selectedBlockchain === ETHEREUM_NETWORK
+    ) {
+      if (Number(value) < ETH_MIN_WITHDRAWAL) {
+        return counterpart.translate(
+          `field.errors.amount_should_greater_than`,
+          {
+            amount: ETH_MIN_WITHDRAWAL,
           }
         );
       }
@@ -413,16 +452,26 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
   const validateSonStatus = () => {
     if (isSonNetworkOk === undefined) {
       return counterpart.translate(`field.errors.checking_sons_status`);
-    } else {
-      if (!isSonNetworkOk) {
-        return counterpart.translate(`field.errors.sons_not_available`);
-      }
-      return undefined;
     }
+    if (!isSonNetworkOk) {
+      return counterpart.translate(`field.errors.sons_not_available`);
+    }
+    return undefined;
   };
   const validateToInBitcoin = () => {
-    return !hasBTCDepositAddress
-      ? counterpart.translate(`field.errors.first_generate_deposit_addresses`)
+    return !bitcoinSidechainAccount ||
+      !bitcoinSidechainAccount.hasDepositAddress
+      ? counterpart.translate(
+          `field.errors.first_generate_btc_deposit_addresses`
+        )
+      : undefined;
+  };
+  const validateToInEthereum = () => {
+    return !ethereumSidechainAccount ||
+      !ethereumSidechainAccount.hasDepositAddress
+      ? counterpart.translate(
+          `field.errors.first_generate_eth_deposit_addresses`
+        )
       : undefined;
   };
   const validateToInHive = (value: string) => {
@@ -439,7 +488,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
       return Promise.reject(new Error(selectionError));
     }
 
-    if (selectedBlockchain === defaultNetwork) {
+    if (selectedBlockchain === DEFAULT_NETWORK) {
       const errorMessage = validateToInPeerplays(value);
       return errorMessage
         ? Promise.reject(new Error(errorMessage))
@@ -454,6 +503,11 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
         const bitcoinError = validateToInBitcoin();
         return bitcoinError
           ? Promise.reject(new Error(bitcoinError))
+          : Promise.resolve();
+      } else if (selectedBlockchain === ETHEREUM_NETWORK) {
+        const ethereumError = validateToInEthereum();
+        return ethereumError
+          ? Promise.reject(new Error(ethereumError))
           : Promise.resolve();
       } else {
         const hiveError = validateToInHive(value);
@@ -493,20 +547,36 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     ],
   };
 
-  // done
   useEffect(() => {
     let ignore = false;
     async function checkSonNetwork() {
-      const sonNetworkStatus = await getSonNetworkStatus();
-      if (!ignore) {
-        setIsSonNetworkOk(sonNetworkStatus.isSonNetworkOk);
+      const isSidechainAsset =
+        sidechainAssets.find(
+          (sidechainAsset) => sidechainAsset?.symbol === assetSymbol
+        ) !== undefined;
+      const isSidechainSelected =
+        selectedBlockchain && selectedBlockchain !== DEFAULT_NETWORK;
+      if (assetSymbol && isSidechainAsset && isSidechainSelected) {
+        setIsSonNetworkOk(undefined);
+        const sidechain = utils.getSidechainFromAssetSymbol(
+          assetSymbol.toUpperCase()
+        );
+        const isSonNetworkOk = await isSidechainSonNetworkOk(sidechain);
+        if (!ignore) {
+          setIsSonNetworkOk(isSonNetworkOk);
+        }
       }
     }
     checkSonNetwork();
     return () => {
       ignore = true;
     };
-  }, [getSonNetworkStatus, setIsSonNetworkOk]);
+  }, [
+    isSidechainSonNetworkOk,
+    setIsSonNetworkOk,
+    assetSymbol,
+    selectedBlockchain,
+  ]);
 
   useEffect(() => {
     const transferFee = calculateTransferFee("");
@@ -515,7 +585,6 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     }
   }, [setFeeAmount, calculateTransferFee, userAsset, selectedBlockchain]);
 
-  // done
   useEffect(() => {
     sendForm.setFieldsValue({
       asset: assetSymbol,
@@ -525,6 +594,52 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
       memo: undefined,
     });
   }, [prevAssetSymbol]);
+
+  useEffect(() => {
+    let ignore = false;
+    async function setSidechainWithdrawalFee() {
+      if (
+        assetSymbol &&
+        selectedBlockchain &&
+        selectedBlockchain !== DEFAULT_NETWORK
+      ) {
+        const sidechain = utils.getSidechainFromAssetSymbol(
+          assetSymbol.toUpperCase()
+        );
+        const sidechainWithdrawalFee = await estimateWithdrawalFeeBySidechain(
+          sidechain
+        );
+        if (!ignore && sidechainWithdrawalFee) {
+          if (sidechain === Sidechain.ETHEREUM) {
+            setEthTransferFee(
+              setPrecision(
+                false,
+                sidechainWithdrawalFee.amount,
+                selectedAssetPrecision
+              )
+            );
+          } else if (sidechain === Sidechain.BITCOIN) {
+            setBtcTransferFee(
+              setPrecision(
+                false,
+                sidechainWithdrawalFee.amount,
+                selectedAssetPrecision
+              )
+            );
+          }
+        }
+      }
+    }
+    setSidechainWithdrawalFee();
+    const feeEstimationInterval = setInterval(
+      () => setSidechainWithdrawalFee(),
+      12000
+    );
+    return () => {
+      ignore = true;
+      clearInterval(feeEstimationInterval);
+    };
+  }, [estimateWithdrawalFeeBySidechain, selectedBlockchain, assetSymbol]);
 
   return {
     assets,
@@ -546,6 +661,7 @@ export function useSendForm({ assetSymbol }: Args): UseSendFormResult {
     toAccount: sendForm.getFieldsValue().to,
     selectedAssetPrecision,
     btcTransferFee,
+    ethTransferFee,
     afterTransactionModalClose: afterTransactionModalClose.current,
   };
 }

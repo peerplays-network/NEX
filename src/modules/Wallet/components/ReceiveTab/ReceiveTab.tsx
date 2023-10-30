@@ -1,8 +1,11 @@
 import counterpart from "counterpart";
+import { useMemo } from "react";
 
 import { AssetsTable, AssetTitle } from "..";
 import {
   BITCOIN_ASSET_SYMBOL,
+  config,
+  ETHEREUM_ASSET_SYMBOL,
   HBD_ASSET_SYMBOL,
   HIVE_ASSET_SYMBOL,
 } from "../../../../api/params";
@@ -14,8 +17,9 @@ import {
   UserLinkExtractor,
 } from "../../../../common/components";
 import { useUserContext } from "../../../../common/providers";
-import { SidechainAccount } from "../../../../common/types";
+import { Sidechain, SidechainAccount } from "../../../../common/types";
 import BitcoinIcon from "../../../../ui/src/icons/Cryptocurrencies/BitcoinIcon.svg";
+import EthereumIcon from "../../../../ui/src/icons/Cryptocurrencies/EthereumIcon.svg";
 
 import * as Styled from "./ReceiveTab.styled";
 import { AssetSelector } from "./components";
@@ -26,39 +30,48 @@ type Props = {
 
 export const ReceiveTab = ({ assetSymbol }: Props): JSX.Element => {
   const {
-    bitcoinSidechainAccount,
-    hasBTCDepositAddress,
+    sidechainAccounts,
     loadingSidechainAccounts,
     getSidechainAccounts,
     localStorageAccount,
   } = useUserContext();
+  const bitcoinSidechainAccount = useMemo(() => {
+    return sidechainAccounts[Sidechain.BITCOIN];
+  }, [sidechainAccounts]);
+  const ethereumSidechainAccount = useMemo(() => {
+    return sidechainAccounts[Sidechain.ETHEREUM];
+  }, [sidechainAccounts]);
 
   const renderBTCDepositInstruction = (instruction: string) => {
     return (
-      <Styled.BTCDepositInstructionContainer>
-        <Styled.BTCIconWrapper>
+      <Styled.SidechainDepositInstructionContainer>
+        <Styled.SidechainIconWrapper>
           <BitcoinIcon width="30" height="30" />
-        </Styled.BTCIconWrapper>
-        <Styled.BTCDepositInstruction>
+        </Styled.SidechainIconWrapper>
+        <Styled.SidechainDepositInstruction>
           {instruction}
-        </Styled.BTCDepositInstruction>
-      </Styled.BTCDepositInstructionContainer>
+        </Styled.SidechainDepositInstruction>
+      </Styled.SidechainDepositInstructionContainer>
     );
   };
-
-  const renderBtcDeposit = (
-    hasBTCDepositAddress: boolean,
-    bitcoinSidechainAccount: SidechainAccount
-  ) => {
-    if (hasBTCDepositAddress) {
+  const renderBtcDeposit = (bitcoinSidechainAccount?: {
+    account: SidechainAccount;
+    hasDepositAddress: boolean;
+  }) => {
+    if (bitcoinSidechainAccount && bitcoinSidechainAccount.hasDepositAddress) {
       return (
         <>
-          <AddressGenerated bitcoinSidechainAccount={bitcoinSidechainAccount} />
+          <AddressGenerated
+            label={counterpart.translate(
+              `field.labels.bitcoin_deposit_address`
+            )}
+            sidechainAccount={bitcoinSidechainAccount.account}
+          />
           {renderBTCDepositInstruction(
             counterpart.translate(`field.labels.deposit_btc`)
           )}
           <DownloadBitcoinKeys
-            bitcoinSidechainAccount={bitcoinSidechainAccount}
+            bitcoinSidechainAccount={bitcoinSidechainAccount.account}
             getSidechainAccounts={getSidechainAccounts}
           />
         </>
@@ -66,9 +79,9 @@ export const ReceiveTab = ({ assetSymbol }: Props): JSX.Element => {
     } else {
       return (
         <>
-          <Styled.BtcNotAssociated>
+          <Styled.SidechainAddressNotAssociated>
             {counterpart.translate(`pages.wallet.no_btc_address`)}
-          </Styled.BtcNotAssociated>
+          </Styled.SidechainAddressNotAssociated>
           <Styled.GenerateBitcoinAddress
             getSidechainAccounts={getSidechainAccounts}
           />
@@ -80,12 +93,51 @@ export const ReceiveTab = ({ assetSymbol }: Props): JSX.Element => {
     }
   };
 
+  const renderEthDepositInstruction = (instruction: string) => {
+    return (
+      <Styled.SidechainDepositInstructionContainer>
+        <Styled.SidechainIconWrapper>
+          <EthereumIcon width="30" height="30" />
+        </Styled.SidechainIconWrapper>
+        <Styled.SidechainDepositInstruction>
+          {instruction}
+        </Styled.SidechainDepositInstruction>
+      </Styled.SidechainDepositInstructionContainer>
+    );
+  };
+  const renderEthDeposit = (ethereumSidechainAccount?: {
+    account: SidechainAccount;
+    hasDepositAddress: boolean;
+  }) => {
+    return (
+      <>
+        {ethereumSidechainAccount &&
+        ethereumSidechainAccount.hasDepositAddress ? (
+          <></>
+        ) : (
+          <Styled.SidechainAddressNotAssociated>
+            {counterpart.translate(`pages.wallet.no_eth_address`)}
+          </Styled.SidechainAddressNotAssociated>
+        )}
+
+        <Styled.AddOrUpdateEthereumDepositAddress
+          getSidechainAccounts={getSidechainAccounts}
+          ethereumSidechainAccount={ethereumSidechainAccount}
+        />
+        {renderEthDepositInstruction(
+          counterpart.translate(`field.labels.add_eth_deposit_address`, {
+            primaryWallet: config.EthereumPrimaryWallet,
+          })
+        )}
+      </>
+    );
+  };
+
   const renderDeposit = (asset: string) => {
     if (asset === BITCOIN_ASSET_SYMBOL) {
-      return renderBtcDeposit(
-        hasBTCDepositAddress,
-        bitcoinSidechainAccount as SidechainAccount
-      );
+      return renderBtcDeposit(bitcoinSidechainAccount);
+    } else if (asset === ETHEREUM_ASSET_SYMBOL) {
+      return renderEthDeposit(ethereumSidechainAccount);
     } else if (asset === HIVE_ASSET_SYMBOL || asset === HBD_ASSET_SYMBOL) {
       return <HIVEAndHBDDeposit assetSymbol={asset} />;
     } else {

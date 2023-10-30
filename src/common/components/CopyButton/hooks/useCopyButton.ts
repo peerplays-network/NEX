@@ -11,6 +11,9 @@ export function useCopyButton(): UseCopyButtonResult {
     (value: string) => {
       setCopied(true);
       copyText(value);
+      setTimeout(() => {
+        setCopied(false);
+      }, 3000);
     },
     [setCopied]
   );

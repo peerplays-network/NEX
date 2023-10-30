@@ -1,29 +1,27 @@
-import counterpart from "counterpart";
-
 import { CopyButton } from "..";
 import { SidechainAccount } from "../../types";
 
 import * as Styled from "./AddressGenerated.styled";
 
 type Props = {
-  bitcoinSidechainAccount?: SidechainAccount;
+  label: string;
+  sidechainAccount: SidechainAccount;
 };
 export const AddressGenerated = ({
-  bitcoinSidechainAccount,
+  label,
+  sidechainAccount,
 }: Props): JSX.Element => {
   return (
     <>
-      <Styled.GeneratedBitcoinAddressLabel>
-        {counterpart.translate(`field.labels.bitcoin_deposit_address`)}
-      </Styled.GeneratedBitcoinAddressLabel>
-      <Styled.GeneratedBitcoinAddress
+      <Styled.GeneratedAddressLabel>{label}</Styled.GeneratedAddressLabel>
+      <Styled.GeneratedAddress
         size="small"
         suffix={
           <CopyButton
-            copyValue={`${bitcoinSidechainAccount?.deposit_address}`}
+            copyValue={`${sidechainAccount.deposit_address}`}
           ></CopyButton>
         }
-        value={bitcoinSidechainAccount?.deposit_address}
+        value={sidechainAccount?.deposit_address}
         disabled
       />
     </>

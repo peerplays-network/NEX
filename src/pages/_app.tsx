@@ -9,7 +9,6 @@ import {
   Title,
   Tooltip,
 } from "chart.js";
-import { MetaMaskProvider } from "metamask-react";
 import type { AppProps } from "next/app";
 import { useEffect } from "react";
 import TagManager from "react-gtm-module";
@@ -24,7 +23,6 @@ import {
   MarketProvider,
   MenuProvider,
   NotificationsProvider,
-  PeerLinkProvider,
   PeerplaysApiProvider,
   UserProvider,
   ViewportProvider,
@@ -59,31 +57,27 @@ function App({ Component, pageProps }: AppProps): JSX.Element {
 
   return (
     <ViewportProvider>
-      <MetaMaskProvider>
-        <PeerLinkProvider>
-          <AppSettingsProvider>
-            <PeerplaysApiProvider>
-              <ConnectionManagerProvider>
-                <AssetsProvider>
-                  <FeesProvider>
-                    <UserProvider>
-                      <BrowserHistoryProvider>
-                        <NotificationsProvider>
-                          <MenuProvider>
-                            <MarketProvider>
-                              <Component {...pageProps} />
-                            </MarketProvider>
-                          </MenuProvider>
-                        </NotificationsProvider>
-                      </BrowserHistoryProvider>
-                    </UserProvider>
-                  </FeesProvider>
-                </AssetsProvider>
-              </ConnectionManagerProvider>
-            </PeerplaysApiProvider>
-          </AppSettingsProvider>
-        </PeerLinkProvider>
-      </MetaMaskProvider>
+      <AppSettingsProvider>
+        <PeerplaysApiProvider>
+          <ConnectionManagerProvider>
+            <AssetsProvider>
+              <FeesProvider>
+                <UserProvider>
+                  <BrowserHistoryProvider>
+                    <NotificationsProvider>
+                      <MenuProvider>
+                        <MarketProvider>
+                          <Component {...pageProps} />
+                        </MarketProvider>
+                      </MenuProvider>
+                    </NotificationsProvider>
+                  </BrowserHistoryProvider>
+                </UserProvider>
+              </FeesProvider>
+            </AssetsProvider>
+          </ConnectionManagerProvider>
+        </PeerplaysApiProvider>
+      </AppSettingsProvider>
     </ViewportProvider>
   );
 }

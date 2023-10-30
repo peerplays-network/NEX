@@ -1,7 +1,7 @@
 import { useCallback } from "react";
 
 import { useFormKeys } from "..";
-import { faucetUrl } from "../../../api/params";
+import { FAUCET_URL } from "../../../api/params";
 import { FullAccount, SignupForm } from "../../types";
 
 import { useAccount } from "./useAccount";
@@ -23,7 +23,7 @@ export function useCreateAccount(): {
         refcode: null,
       };
       try {
-        const newUser = await fetch(faucetUrl as string, {
+        const newUser = await fetch(FAUCET_URL as string, {
           method: "POST",
           headers: {
             Accept: "application/json",

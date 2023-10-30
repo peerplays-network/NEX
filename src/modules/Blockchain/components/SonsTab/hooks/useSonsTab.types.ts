@@ -5,14 +5,18 @@ export type UseSonsTabResult = {
   sonsTableRows: SonsTableRow[] | undefined;
   searchDataSource: SonsTableRow[];
   sonsStats: SonsStats;
-  activeSons: number;
+  activeBitcoinSons: number;
+  activeHiveSons: number;
+  activeEthereumSons: number;
   budget: number;
   nextVote: string;
   setSearchDataSource: Dispatch<SetStateAction<SonsTableRow[]>>;
 };
 
 export type SonsStats = {
-  active: number[];
+  activeBitcoin: number[];
+  activeHive: number[];
+  activeEthereum: number[];
   budget: number[];
   nextVote: number[];
 };
@@ -21,7 +25,14 @@ export type SonsTableRow = {
   key: number;
   rank: number;
   name: string;
-  active: boolean;
+  accountId: string;
   url: string;
-  totalVotes: string;
+  activeChains: string[];
+  //expandable
+  bitcoinActive: boolean;
+  ethereumActive: boolean;
+  hiveActive: boolean;
+  bitcoinTotalVotes?: string;
+  ethereumTotalVotes?: string;
+  hiveTotalVotes?: string;
 };

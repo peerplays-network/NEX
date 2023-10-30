@@ -28,15 +28,16 @@ export const ActivityAndNotificationTable = styled(UiTable)`
     font-weight: 500;
   }
 
-  .ant-table-container table > thead > tr:first-child th:first-child {
-    width: 160px;
-  }
-  .ant-table-container table > thead > tr:first-child th:nth-child(5) {
-    min-width: 105px;
+  .ant-table-container table > thead > tr:first-child th:nth-child(2) {
+    width: 240px;
   }
 `;
 
-export const ActivityAndNotificationTableWrapper = styled(DataTabWrapper)``;
+export const ActivityAndNotificationTableWrapper = styled(DataTabWrapper)`
+  .ant-table {
+    max-width: unset;
+  }
+`;
 
 export const ActivityAndNotificationTableHeader = styled(DataTableHeader)`
   margin-left: 10px;

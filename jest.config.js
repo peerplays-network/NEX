@@ -31,6 +31,7 @@ const customJestConfig = {
     "!<rootDir>/public/static/datafeeds/**",
   ],
   coverageReporters: ["clover", "json", "lcov", "text"],
+  reporters: ["default", "jest-junit"],
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async

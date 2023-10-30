@@ -88,9 +88,9 @@ export const SwapTab = (): JSX.Element => {
   const renderPriceLeftSideEquality =
     "1 " + selectedAssetsSymbols.buyAssetSymbol;
   const renderPriceRightSideEquality =
-    `${price} ` + selectedAssetsSymbols.sellAssetSymbol;
+    price + " " + selectedAssetsSymbols.sellAssetSymbol;
   const renderPriceAmount =
-    price === 0 ? (
+    price === undefined ? (
       ""
     ) : (
       <>
@@ -193,6 +193,10 @@ export const SwapTab = (): JSX.Element => {
             const values = swapForm.getFieldsValue();
             setTransactionModalSellAmount(values.sellAmount);
             setTransactionModalBuyAmount(values.buyAmount);
+          }}
+          initialValues={{
+            sellAmount: "0",
+            buyAmount: "0",
           }}
           validateTrigger={["onChange", "onSubmit", "onBlur"]}
         >

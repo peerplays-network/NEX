@@ -72,12 +72,9 @@ export const FaucetURLWrapper = styled.div`
 `;
 
 export const FaucetURL = styled.div`
-  text-align: left;
-  font: normal normal normal 14px/17px Inter;
-  letter-spacing: 0px;
   color: ${colors.textColor};
-  opacity: 1;
   margin-bottom: 20px;
+  word-break: break-word;
   ${breakpoint.sm} {
     margin-bottom: 0;
   }

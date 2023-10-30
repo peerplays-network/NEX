@@ -1,10 +1,10 @@
 import { GPOSInfo } from "../../../common/hooks";
-import { FullAccount, Proxy, Vote } from "../../../common/types";
+import { FullAccount, Member, Proxy } from "../../../common/types";
 
 export type UseVotingResult = {
   loadingUserVotes: boolean;
   serverApprovedVotesIds: string[];
-  allMembers: Vote[];
+  allMembers: Member[];
   fullAccount: FullAccount | undefined;
   allMembersIds: [string, string][];
   gposInfo: GPOSInfo;

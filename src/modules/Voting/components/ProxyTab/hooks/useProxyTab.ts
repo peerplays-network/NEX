@@ -1,4 +1,5 @@
 import counterpart from "counterpart";
+import { cloneDeep } from "lodash";
 import { ChangeEvent, useCallback, useEffect, useState } from "react";
 
 import { DEFAULT_PROXY_ID, defaultToken } from "../../../../../api/params";
@@ -88,7 +89,7 @@ export function useProxyTab({
   const getUpdateAccountTrx = useCallback(async () => {
     const fullAccount = await getFullAccount(localStorageAccount, false);
     if (fullAccount !== undefined && id) {
-      const new_options = fullAccount.account.options;
+      const new_options = cloneDeep(fullAccount.account.options);
       new_options.voting_account =
         localProxy && localProxy.id ? localProxy.id : DEFAULT_PROXY_ID;
       const trx = buildUpdateAccountTransaction(

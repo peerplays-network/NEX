@@ -40,9 +40,8 @@ export function useBlockchainTab(): UseBlockchainTabResult {
   const { defaultAsset } = useAssetsContext();
   const { updateArrayWithLimit } = useArrayLimiter();
   const {
-    getChain,
-    getBlockData,
-    getDynamic,
+    getDynamicGlobalProperties,
+    getAssetDynamicData,
     getRecentBlocks,
     getAvgBlockTime,
   } = useBlockchain();
@@ -69,12 +68,11 @@ export function useBlockchainTab(): UseBlockchainTabResult {
   const getBlockchainData = useCallback(async () => {
     try {
       const recentBlocks = getRecentBlocks();
-      const [chain, blockData, dynamic] = await Promise.all([
-        getChain(),
-        getBlockData(),
-        getDynamic(),
+      const [dgpo, assetDynamicData] = await Promise.all([
+        getDynamicGlobalProperties(),
+        getAssetDynamicData(),
       ]);
-      if (defaultAsset && chain && blockData && dynamic) {
+      if (defaultAsset && dgpo && assetDynamicData) {
         const chainAvgTime = getAvgBlockTime();
         const blockRows: DataTableRow[] = recentBlocks.map((block) => {
           return {
@@ -86,17 +84,17 @@ export function useBlockchainTab(): UseBlockchainTabResult {
           };
         });
         const distance_form_irreversible =
-          blockData.head_block_number - blockData.last_irreversible_block_num;
+          dgpo.head_block_number - dgpo.last_irreversible_block_num;
         const supplyAmount = setPrecision(
           false,
-          parseInt(dynamic.current_supply),
+          parseInt(assetDynamicData.current_supply),
           defaultAsset.precision
         );
         return {
           blockRows,
-          currentBlock: blockData.head_block_number,
+          currentBlock: dgpo.head_block_number,
           lastIrreversibleBlock:
-            blockData.last_irreversible_block_num +
+            dgpo.last_irreversible_block_num +
             " (-" +
             distance_form_irreversible +
             ")",
@@ -108,7 +106,7 @@ export function useBlockchainTab(): UseBlockchainTabResult {
           blockchainStats: {
             currentBlock: updateArrayWithLimit(
               blockchainStats.currentBlock,
-              blockData.head_block_number,
+              dgpo.head_block_number,
               99
             ),
             lastIrreversible: updateArrayWithLimit(
@@ -134,9 +132,8 @@ export function useBlockchainTab(): UseBlockchainTabResult {
     }
   }, [
     getRecentBlocks,
-    getChain,
-    getBlockData,
-    getDynamic,
+    getDynamicGlobalProperties,
+    getAssetDynamicData,
     defaultAsset,
     getAvgBlockTime,
     setPrecision,

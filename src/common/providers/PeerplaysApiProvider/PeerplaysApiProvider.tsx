@@ -1320,6 +1320,9 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
             case "_bookie":
               selectedApi = apiInstance.current._bookie;
               break;
+            case "_sidechain":
+              selectedApi = apiInstance.current._sidechain;
+              break;
             case "_asset":
               selectedApi = apiInstance.current._asset;
               break;
@@ -1336,6 +1339,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
 
   const dbApi = useCallback(getApi("_db"), [getApi]);
   const historyApi = useCallback(getApi("_hist"), [getApi]);
+  const sidechainApi = useCallback(getApi("_sidechain"), [getApi]);
   const assetApi = useCallback(getApi("_asset"), [getApi]);
 
   useEffect(() => {
@@ -1352,6 +1356,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
       willTransitionTo,
       dbApi,
       historyApi,
+      sidechainApi,
       assetApi,
       isTransitionInProgress,
       getTransitionTarget,
@@ -1366,6 +1371,7 @@ export const PeerplaysApiProvider = ({ children }: Props): JSX.Element => {
     willTransitionTo,
     dbApi,
     historyApi,
+    sidechainApi,
     assetApi,
     isTransitionInProgress,
     getTransitionTarget,

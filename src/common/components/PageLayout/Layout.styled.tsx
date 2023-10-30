@@ -13,7 +13,7 @@ export const Page = styled.section`
       radial-gradient(
         closest-side at 50% 50%,
         ${colors.primaryColor} 0%,
-        #01245f 100%
+        ${colors.primaryGradiantColor} 100%
       )
       0% 0% no-repeat padding-box;
     &.dex {

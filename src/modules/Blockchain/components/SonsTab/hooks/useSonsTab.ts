@@ -1,3 +1,4 @@
+import { sum } from "lodash";
 import { useCallback, useEffect, useState } from "react";
 
 import {
@@ -6,8 +7,10 @@ import {
   useBlockchain,
   useFormDate,
   useMembers,
+  useSons,
 } from "../../../../../common/hooks";
 import { useAssetsContext } from "../../../../../common/providers";
+import { Sidechain } from "../../../../../common/types";
 
 import { SonsStats, SonsTableRow, UseSonsTabResult } from "./useSonsTab.types";
 
@@ -16,72 +19,121 @@ export function useSonsTab(): UseSonsTabResult {
   const [searchDataSource, setSearchDataSource] = useState<SonsTableRow[]>([]);
   const [sonsTableRows, setSonsTableRows] = useState<SonsTableRow[]>();
   const [sonsStats, setSonsStats] = useState<SonsStats>({
-    active: [],
+    activeBitcoin: [],
+    activeHive: [],
+    activeEthereum: [],
     budget: [],
     nextVote: [],
   });
-  const [activeSons, setActiveSons] = useState<number>(0);
+  const [activeBitcoinSons, setActiveBitcoinSons] = useState<number>(0);
+  const [activeHiveSons, setActiveHiveSons] = useState<number>(0);
+  const [activeEthereumSons, setActiveEthereumSons] = useState<number>(0);
   const [budget, setBudget] = useState<number>(0);
   const [nextVote, setNextVote] = useState<string>("");
 
   const { getSons } = useMembers();
   const { updateArrayWithLimit } = useArrayLimiter();
-  const { formKnownAssetBalanceById, setPrecision } = useAsset();
+  const { setPrecision } = useAsset();
+  const { getSonAccountVotes } = useSons();
   const { defaultAsset } = useAssetsContext();
-  const { getChain, getBlockData } = useBlockchain();
+  const { getGlobalProperties, getDynamicGlobalProperties } = useBlockchain();
   const { formLocalDate } = useFormDate();
 
   const getSonsData = useCallback(async () => {
     if (defaultAsset) {
-      const [chain, blockData] = await Promise.all([
-        getChain(),
-        getBlockData(),
+      const [gpo, dgpo] = await Promise.all([
+        getGlobalProperties(),
+        getDynamicGlobalProperties(),
       ]);
-      if (chain && blockData) {
+      if (gpo && dgpo) {
         const { sons, sonsIds } = await getSons();
         const budgetAmount = setPrecision(
           false,
-          blockData.son_budget,
+          dgpo.son_budget,
           defaultAsset.precision
         );
         const now = new Date().getTime();
-        const nextVoteTime = new Date(
-          blockData.next_maintenance_time
-        ).getTime();
+        const nextVoteTime = new Date(dgpo.next_maintenance_time).getTime();
         const nextVoteDistance = now - nextVoteTime;
-        sons.sort((a, b) => b.total_votes - a.total_votes);
+        sons.sort(
+          (a, b) =>
+            sum(b.total_votes.map((vote) => vote[1])) -
+            sum(a.total_votes.map((vote) => vote[1]))
+        );
         const sonsRows: SonsTableRow[] = [];
         let index = 0;
         const sonsVotesAsset = sons.map((son) => {
-          return formKnownAssetBalanceById(defaultAsset, son.total_votes);
+          const { bitcoinVoteAsset, hiveVoteAsset, ethereumVoteAsset } =
+            getSonAccountVotes(son, defaultAsset);
+          return {
+            bitcoinVoteAsset: bitcoinVoteAsset,
+            hiveVoteAsset: hiveVoteAsset,
+            ethereumVoteAsset: ethereumVoteAsset,
+          };
         });
 
         for (const son of sons) {
+          const activeChains = son.statuses
+            .filter((status) => status[1] === "active")
+            .map((status) => status[0]);
+
           sonsRows.push({
             key: index,
             rank: index + 1,
             name: sonsIds.filter((sonId) => sonId[1] === son.id)[0][0],
-            active: son.status === "active" ? true : false,
+            accountId: son.son_account,
             url: son.url,
-            totalVotes: `${sonsVotesAsset[index]?.amount} ${sonsVotesAsset[index]?.symbol}`,
+            activeChains: activeChains,
+            bitcoinActive: activeChains.includes(Sidechain.BITCOIN),
+            ethereumActive: activeChains.includes(Sidechain.ETHEREUM),
+            hiveActive: activeChains.includes(Sidechain.HIVE),
+            bitcoinTotalVotes: sonsVotesAsset[index].bitcoinVoteAsset
+              ? `${sonsVotesAsset[index].bitcoinVoteAsset?.amount} ${sonsVotesAsset[index].bitcoinVoteAsset?.symbol}`
+              : undefined,
+            ethereumTotalVotes: sonsVotesAsset[index].ethereumVoteAsset
+              ? `${sonsVotesAsset[index].ethereumVoteAsset?.amount} ${sonsVotesAsset[index].ethereumVoteAsset?.symbol}`
+              : undefined,
+            hiveTotalVotes: sonsVotesAsset[index].hiveVoteAsset
+              ? `${sonsVotesAsset[index].hiveVoteAsset?.amount} ${sonsVotesAsset[index].hiveVoteAsset?.symbol}`
+              : undefined,
           } as SonsTableRow);
           index = index + 1;
         }
 
-        const activeSones = sonsRows.filter((son) => son.active === true);
+        const activeBitcoinSons = sonsRows.filter(
+          (son) => son.bitcoinActive === true
+        );
+        const activeHiveSons = sonsRows.filter(
+          (son) => son.hiveActive === true
+        );
+        const activeEthereumSons = sonsRows.filter(
+          (son) => son.ethereumActive === true
+        );
         return {
           sonsRows,
-          activeSons: activeSones.length,
+          activeBitcoinSons: activeBitcoinSons.length,
+          activeHiveSons: activeHiveSons.length,
+          activeEthereumSons: activeEthereumSons.length,
           budget: budgetAmount,
-          nextVote: formLocalDate(blockData.next_maintenance_time, [
+          nextVote: formLocalDate(dgpo.next_maintenance_time, [
             "month",
             "date",
             "time",
           ]),
           sonsStats: {
-            active: updateArrayWithLimit(
-              sonsStats.active,
-              activeSones.length,
+            activeBitcoin: updateArrayWithLimit(
+              sonsStats.activeBitcoin,
+              activeBitcoinSons.length,
+              99
+            ),
+            activeHive: updateArrayWithLimit(
+              sonsStats.activeHive,
+              activeHiveSons.length,
+              99
+            ),
+            activeEthereum: updateArrayWithLimit(
+              sonsStats.activeEthereum,
+              activeEthereumSons.length,
               99
             ),
             budget: updateArrayWithLimit(sonsStats.budget, budgetAmount, 99),
@@ -96,11 +148,11 @@ export function useSonsTab(): UseSonsTabResult {
     }
   }, [
     defaultAsset,
-    getChain,
-    getBlockData,
+    getGlobalProperties,
+    getDynamicGlobalProperties,
     getSons,
     setPrecision,
-    formKnownAssetBalanceById,
+    getSonAccountVotes,
   ]);
 
   useEffect(() => {
@@ -111,7 +163,9 @@ export function useSonsTab(): UseSonsTabResult {
       if (!ignore && sonsData) {
         setSonsTableRows(sonsData.sonsRows);
         setSearchDataSource(sonsData.sonsRows);
-        setActiveSons(sonsData.activeSons);
+        setActiveBitcoinSons(sonsData.activeBitcoinSons);
+        setActiveEthereumSons(sonsData.activeEthereumSons);
+        setActiveHiveSons(sonsData.activeHiveSons);
         setBudget(sonsData.budget);
         setNextVote(sonsData.nextVote);
         setSonsStats(sonsData.sonsStats);
@@ -129,7 +183,9 @@ export function useSonsTab(): UseSonsTabResult {
     getSonsData,
     setSonsTableRows,
     setSearchDataSource,
-    setActiveSons,
+    setActiveBitcoinSons,
+    setActiveEthereumSons,
+    setActiveHiveSons,
     setBudget,
     setNextVote,
     setSonsStats,
@@ -140,7 +196,9 @@ export function useSonsTab(): UseSonsTabResult {
     sonsTableRows,
     searchDataSource,
     sonsStats,
-    activeSons,
+    activeBitcoinSons,
+    activeEthereumSons,
+    activeHiveSons,
     budget,
     nextVote,
     setSearchDataSource,

@@ -1,6 +1,6 @@
 import counterpart from "counterpart";
 
-import { defaultLocales, faucetUrl } from "../../../../api/params";
+import { defaultLocales, FAUCET_URL } from "../../../../api/params";
 import { Checkbox, Col, InfoCircleOutlined, Row } from "../../../../ui/src";
 import { useSettings } from "../../hooks";
 
@@ -184,10 +184,10 @@ export const GeneralTab = (): JSX.Element => {
           <Styled.FaucetURLWrapper>
             <Styled.FaucetURL>{`${counterpart.translate(
               `field.labels.faucet_url`
-            )} ${faucetUrl}`}</Styled.FaucetURL>
+            )} ${FAUCET_URL}`}</Styled.FaucetURL>
             <Styled.CopyButton
               buttonText={counterpart.translate(`field.labels.copy_url`)}
-              copyValue={`${faucetUrl as string}`}
+              copyValue={`${FAUCET_URL as string}`}
             ></Styled.CopyButton>
           </Styled.FaucetURLWrapper>
           {showSuccessMessage && (

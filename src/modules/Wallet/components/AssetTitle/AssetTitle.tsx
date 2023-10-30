@@ -1,6 +1,6 @@
 import {
   BITCOIN_NETWORK,
-  defaultNetwork,
+  DEFAULT_NETWORK,
   HBD_ASSET_SYMBOL,
   HIVE_ASSET_SYMBOL,
 } from "../../../../api/params";
@@ -49,8 +49,8 @@ export const AssetTitle = ({
     [symbol: string]: string;
   } = {
     BTC: BITCOIN_NETWORK,
-    TEST: defaultNetwork,
-    PPY: defaultNetwork,
+    TEST: DEFAULT_NETWORK,
+    PPY: DEFAULT_NETWORK,
     HIVE: HIVE_ASSET_SYMBOL,
     HBD: HBD_ASSET_SYMBOL,
   };
