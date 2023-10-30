@@ -12,7 +12,7 @@ export const Title = styled.h2`
   margin: 0 25px;
   max-width: 100%;
   font-size: 18px;
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     font-size: 20px;
     margin: 0 35px;
     margin-bottom: 25px;

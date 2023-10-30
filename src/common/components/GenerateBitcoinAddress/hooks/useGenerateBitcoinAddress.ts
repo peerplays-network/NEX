@@ -13,7 +13,7 @@ import {
   useTransactionMessage,
 } from "../../../hooks";
 import { useUserContext } from "../../../providers";
-import { BitcoinAccount, SignerKey } from "../../../types";
+import { BitcoinAccount, Sidechain, SignerKey } from "../../../types";
 
 import { UseGenerateBitcoinAddressResult } from "./useGenerateBitcoinAddress.types";
 
@@ -25,12 +25,14 @@ export function useGenerateBitcoinAddress(
   const { transactionMessageState, dispatchTransactionMessage } =
     useTransactionMessage();
   const { buildTrx } = useTransactionBuilder();
-  const { id } = useUserContext();
-  const { getSonNetworkStatus } = useSonNetwork();
+  const {
+    id,
+    sessionBitcoinSidechainAccounts,
+    setSessionBitcoinSidechainAccounts,
+  } = useUserContext();
+  const { isSidechainSonNetworkOk } = useSonNetwork();
   const { buildAddingBitcoinSidechainTransaction } =
     useSidechainTransactionBuilder();
-  const { bitcoinSidechainAccounts, setBitcoinSidechainAccounts } =
-    useUserContext();
 
   const toHex = useCallback((buffer: Buffer) => {
     return Array.from(buffer)
@@ -62,9 +64,9 @@ export function useGenerateBitcoinAddress(
       });
 
       try {
-        const sonNetworkStatus = await getSonNetworkStatus();
+        const isSonOk = await isSidechainSonNetworkOk(Sidechain.BITCOIN);
 
-        if (!sonNetworkStatus.isSonNetworkOk) {
+        if (!isSonOk) {
           dispatchTransactionMessage({
             type: TransactionMessageActionType.LOADED_ERROR,
             message: counterpart.translate(
@@ -86,7 +88,7 @@ export function useGenerateBitcoinAddress(
       const deposit = generateNewAddress();
       const withdraw = generateNewAddress();
 
-      setBitcoinSidechainAccounts({ deposit, withdraw });
+      setSessionBitcoinSidechainAccounts({ deposit, withdraw });
 
       const trx = buildAddingBitcoinSidechainTransaction(
         id,
@@ -128,16 +130,16 @@ export function useGenerateBitcoinAddress(
       buildAddingBitcoinSidechainTransaction,
       buildTrx,
       getSidechainAccounts,
-      setBitcoinSidechainAccounts,
+      setSessionBitcoinSidechainAccounts,
       dispatchTransactionMessage,
       id,
-      getSonNetworkStatus,
+      isSidechainSonNetworkOk,
     ]
   );
 
   return {
-    bitcoinSidechainAccounts,
-    setBitcoinSidechainAccounts,
+    sessionBitcoinSidechainAccounts,
+    setSessionBitcoinSidechainAccounts,
     transactionMessageState,
     dispatchTransactionMessage,
     generateBitcoinAddresses,

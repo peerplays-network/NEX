@@ -104,11 +104,11 @@ export const OperationsTable = ({ transactionRow }: Props): JSX.Element => {
   const expandedRowRender = useCallback((record: OperationRow) => {
     return (
       <>
-        <p>
+        <p style={{ wordBreak: "break-all" }}>
           {counterpart.translate(`pages.blocks.transaction_details.details`)}:{" "}
           {record.details}
         </p>
-        <p>
+        <p style={{ wordBreak: "break-all" }}>
           {counterpart.translate(`pages.blocks.transaction_details.results`)}:{" "}
           {record.results}
         </p>

@@ -7,9 +7,10 @@ import { usePeerplaysApiContext, useUserContext } from "../../providers";
 import {
   Account,
   Asset,
+  Authority,
   FullAccount,
   KeyType,
-  Permissions,
+  VestingBalance,
   WhaleVaultPubKeys,
   WitnessAccount,
 } from "../../types";
@@ -24,7 +25,7 @@ export function useAccount(): UseAccountResult {
     savePassword,
     removePassword,
     setLocalStorageAccount,
-    setBitcoinSidechainAccounts,
+    setSessionBitcoinSidechainAccounts,
   } = useUserContext();
   const { formAssetBalanceById } = useAsset();
   const { dbApi, whaleVaultInstance } = usePeerplaysApiContext();
@@ -78,7 +79,7 @@ export function useAccount(): UseAccountResult {
     updateAccount("", "", [], undefined);
     removePassword();
     setLocalStorageAccount("");
-    setBitcoinSidechainAccounts(undefined);
+    setSessionBitcoinSidechainAccounts(undefined);
   }, [updateAccount, removePassword, setLocalStorageAccount]);
 
   const formAccountAfterConfirmation = useCallback(
@@ -176,7 +177,7 @@ export function useAccount(): UseAccountResult {
         const pubKey = privKey.toPublicKey().toString(defaultToken);
         let userKeys: string[] = [];
         if (role !== "memo") {
-          const permission = account[role as keyof Account] as Permissions;
+          const permission = account[role as keyof Account] as Authority;
           userKeys = permission.key_auths.map((key_auth) => key_auth[0]);
         } else {
           userKeys = [account.options.memo_key];
@@ -335,6 +336,21 @@ export function useAccount(): UseAccountResult {
     [whaleVaultInstance, validateWhaleVaultPubKeys]
   );
 
+  const getVestingBalances = useCallback(
+    async (accountNameOrId: string) => {
+      try {
+        const vestingBalances: VestingBalance[] = await dbApi(
+          "get_vesting_balances",
+          [accountNameOrId]
+        );
+        return vestingBalances;
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    [dbApi]
+  );
+
   return {
     formAccountByName,
     formAccountBalancesByName,
@@ -349,5 +365,6 @@ export function useAccount(): UseAccountResult {
     _validateUseWhaleVault,
     getAccounts,
     getUserNamesByIds,
+    getVestingBalances,
   };
 }

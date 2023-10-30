@@ -12,15 +12,10 @@ import {
 } from "../../../../../../../common/hooks";
 import {
   useAssetsContext,
-  usePeerplaysApiContext,
   useUserContext,
   useViewportContext,
 } from "../../../../../../../common/providers";
-import {
-  Asset,
-  SignerKey,
-  VestingBalance,
-} from "../../../../../../../common/types";
+import { Asset, SignerKey } from "../../../../../../../common/types";
 import { Form } from "../../../../../../../ui/src";
 
 import {
@@ -44,10 +39,9 @@ export function usePowerDownForm({
   const withdrawAmount: string =
     Form.useWatch("withdrawAmount", powerDownForm) || "0";
   const { localStorageAccount, id, assets } = useUserContext();
-  const { dbApi } = usePeerplaysApiContext();
   const { buildVestingWithdrawTransaction } = useGPOSTransactionBuilder();
   const { buildTrx } = useTransactionBuilder();
-  const { formAccountBalancesByName } = useAccount();
+  const { formAccountBalancesByName, getVestingBalances } = useAccount();
   const { calculateGposWithdrawFee } = useFees();
   const { sm } = useViewportContext();
   const { limitByPrecision } = useAsset();
@@ -63,13 +57,10 @@ export function usePowerDownForm({
         dispatchTransactionMessage({
           type: TransactionMessageActionType.LOADING,
         });
-        const vestingBalances: VestingBalance[] = await dbApi(
-          "get_vesting_balances",
-          [id]
-        );
-        const gposVestingBalances = vestingBalances.filter(
-          (balance) => balance.balance_type == "gpos"
-        );
+        const vestingBalances = await getVestingBalances(id);
+        const gposVestingBalances = vestingBalances
+          ? vestingBalances.filter((balance) => balance.balance_type == "gpos")
+          : [];
 
         const trx = buildVestingWithdrawTransaction(
           defaultAsset as Asset,
@@ -109,13 +100,13 @@ export function usePowerDownForm({
     [
       powerDownForm,
       dispatchTransactionMessage,
-      dbApi,
       id,
       gposBalances,
       buildVestingWithdrawTransaction,
       buildTrx,
       formAccountBalancesByName,
       calculateGposBalances,
+      getVestingBalances,
     ]
   );
 
@@ -124,7 +115,7 @@ export function usePowerDownForm({
       const minusDirection =
         Number(withdrawAmount) >= 1
           ? limitByPrecision(
-              String(Number(withdrawAmount) - 1),
+              Number(withdrawAmount) - 1,
               defaultAsset?.precision
             )
           : "0";
@@ -132,7 +123,7 @@ export function usePowerDownForm({
         withdrawAmount:
           direction === "+"
             ? limitByPrecision(
-                String(Number(withdrawAmount) + 1),
+                Number(withdrawAmount) + 1,
                 defaultAsset?.precision
               )
             : minusDirection,
@@ -209,12 +200,12 @@ export function usePowerDownForm({
         ),
       });
       const newBalance = limitByPrecision(
-        String(gposBalances.openingBalance - Number(withdrawAmount)),
+        gposBalances.openingBalance - Number(withdrawAmount),
         defaultAsset?.precision
       );
 
       const newAvailableBalance = limitByPrecision(
-        String(gposBalances.availableBalance - Number(withdrawAmount)),
+        gposBalances.availableBalance - Number(withdrawAmount),
         defaultAsset?.precision
       );
 

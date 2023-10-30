@@ -4,10 +4,12 @@ import { useCallback } from "react";
 import { usePeerplaysApiContext } from "../../providers";
 import {
   Account,
+  AssetDynamicData,
   Block,
-  BlockData,
+  Block2,
   BlockHeader,
-  Dynamic,
+  ChainProperties,
+  DynamicGlobalProperties,
   GlobalProperties,
   WitnessAccount,
 } from "../../types";
@@ -17,33 +19,22 @@ import { UseBlockchainResult } from "./useBlockChain.types";
 export function useBlockchain(): UseBlockchainResult {
   const { dbApi } = usePeerplaysApiContext();
 
-  const getChain = useCallback(async () => {
+  const getDynamicGlobalProperties = useCallback(async () => {
     try {
-      const gpo = await dbApi("get_objects", [["2.0.0"]]);
-      if (gpo && gpo.length) {
-        return gpo[0] as GlobalProperties;
+      const dgpo = await dbApi("get_objects", [["2.1.0"]]);
+      if (dgpo && dgpo.length > 0) {
+        return dgpo[0] as DynamicGlobalProperties;
       }
     } catch (e) {
       console.log(e);
     }
   }, [dbApi]);
 
-  const getBlockData = useCallback(async () => {
-    try {
-      const blockData = await dbApi("get_objects", [["2.1.0"]]);
-      if (blockData && blockData.length > 0) {
-        return blockData[0] as BlockData;
-      }
-    } catch (e) {
-      console.log(e);
-    }
-  }, [dbApi]);
-
-  const getDynamic = useCallback(async () => {
+  const getAssetDynamicData = useCallback(async () => {
     try {
       const dynamic = await dbApi("get_objects", [["2.3.0"]]);
       if (dynamic && dynamic.length > 0) {
-        return dynamic[0] as Dynamic;
+        return dynamic[0] as AssetDynamicData;
       }
     } catch (e) {
       console.log(e);
@@ -98,6 +89,27 @@ export function useBlockchain(): UseBlockchainResult {
     async (value: number) => {
       try {
         const block: Block | null = await dbApi("get_block", [value]);
+        if (block) {
+          const witness: WitnessAccount = (
+            await dbApi("get_objects", [[block.witness]])
+          )[0];
+          const witnessAccount: Account = (
+            await dbApi("get_accounts", [[witness.witness_account]])
+          )[0];
+          block.witness_account_name = witnessAccount.name;
+          return block;
+        }
+      } catch (e) {
+        console.log(e);
+      }
+    },
+    [dbApi]
+  );
+
+  const getBlock2 = useCallback(
+    async (value: number) => {
+      try {
+        const block: Block2 = await dbApi("get_block2", [value]);
         if (block) {
           const witness: WitnessAccount = (
             await dbApi("get_objects", [[block.witness]])
@@ -171,23 +183,33 @@ export function useBlockchain(): UseBlockchainResult {
   const getGlobalProperties = useCallback(async () => {
     try {
       const gpo: GlobalProperties = await dbApi("get_global_properties");
-      if (gpo) {
-        return gpo;
-      }
+      return gpo;
+    } catch (e) {
+      console.log(e);
+    }
+  }, [dbApi]);
+
+  const getChainProperties = useCallback(async () => {
+    try {
+      const chainProperties: ChainProperties = await dbApi(
+        "get_chain_properties"
+      );
+      return chainProperties;
     } catch (e) {
       console.log(e);
     }
   }, [dbApi]);
 
   return {
-    getChain,
-    getBlockData,
-    getDynamic,
+    getDynamicGlobalProperties,
+    getAssetDynamicData,
     getRecentBlocks,
     getAvgBlockTime,
     getBlock,
+    getBlock2,
     getBlocks,
     getBlockHeader,
     getGlobalProperties,
+    getChainProperties,
   };
 }

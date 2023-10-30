@@ -1,13 +1,22 @@
 import counterpart from "counterpart";
+import { cloneDeep, sum, uniq } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { defaultToken } from "../../../../../../api/params";
+import {
+  BITCOIN_SON_VOTE_IDENTIFIER,
+  COMMITTEE_VOTE_IDENTIFIER,
+  defaultToken,
+  ETHEREUM_SON_VOTE_IDENTIFIER,
+  HIVE_SON_VOTE_IDENTIFIER,
+  WITNESS_VOTE_IDENTIFIER,
+} from "../../../../../../api/params";
 import { isArrayEqual } from "../../../../../../api/utils";
 import {
   TransactionMessageActionType,
   useAccount,
   useAsset,
   useBlockchain,
+  useSons,
   useTransactionBuilder,
   useTransactionMessage,
   useUpdateAccountTransactionBuilder,
@@ -17,22 +26,24 @@ import {
   useUserContext,
 } from "../../../../../../common/providers";
 import {
-  AccountOptions,
   Asset,
+  CommitteeMember,
   FullAccount,
   GlobalProperties,
+  Member,
+  MemberType,
+  Sidechain,
   SignerKey,
-  Vote,
-  VoteType,
+  SonAccount,
   WitnessAccount,
 } from "../../../../../../common/types";
-import { VoteRow } from "../../../../types";
+import { VoteRow, VoteStatus } from "../../../../types";
 
 import { UseVoteTabResult } from "./useVoteTab.types";
 
 type Args = {
   tab: string;
-  tabAllMembers: Vote[];
+  tabAllMembers: Member[];
   fullAccount: FullAccount | undefined;
   getUserVotes: () => Promise<void>;
   allMembersIds: [string, string][];
@@ -61,7 +72,7 @@ export function useVoteTab({
 
   const { transactionMessageState, dispatchTransactionMessage } =
     useTransactionMessage();
-  const { formKnownAssetBalanceById } = useAsset();
+  const { formAssetBalance } = useAsset();
   const { defaultAsset } = useAssetsContext();
   const { formAccountBalancesByName } = useAccount();
   const { id, assets, name, localStorageAccount } = useUserContext();
@@ -69,6 +80,7 @@ export function useVoteTab({
     useUpdateAccountTransactionBuilder();
   const { getTrxFee, buildTrx } = useTransactionBuilder();
   const { getGlobalProperties } = useBlockchain();
+  const { getActiveSons, getSonAccountVotes, getSonAccountVoteId } = useSons();
 
   const sortVotesRows = useCallback((votes: VoteRow[]) => {
     const sorter = (a: VoteRow, b: VoteRow) =>
@@ -78,93 +90,237 @@ export function useVoteTab({
       return { ...vote, rank: index + 1 };
     }) as VoteRow[];
   }, []);
-  const formVoteRow = useCallback(
+
+  const formCommitteeWitnessVoteRow = useCallback(
     (
-      vote: Vote,
-      votesIds: [string, string][],
-      status: "approved" | "unapproved",
+      member: WitnessAccount | CommitteeMember,
+      allMemberIds: [string, string][],
       defaultAsset: Asset,
       globalProperties: GlobalProperties
     ): VoteRow => {
-      let voteType: VoteType;
+      let voteType: MemberType;
       let voteActive: boolean;
       let missedBlocks = 0;
-      switch (parseInt(vote.vote_id.charAt(0))) {
-        case 0:
-          voteType = "committees";
-          voteActive =
-            globalProperties["active_committee_members"].indexOf(vote.id) >= 0
-              ? true
-              : false;
-          break;
-        case 3:
-          voteType = "sons";
-          voteActive =
-            globalProperties.active_sons.find(
-              (son) => son.son_id === vote.id
-            ) !== undefined
-              ? true
-              : false;
-          break;
-        default:
-          voteType = "witnesses";
-          voteActive =
-            globalProperties["active_witnesses"].indexOf(vote.id) >= 0
-              ? true
-              : false;
-          missedBlocks = (vote as WitnessAccount).total_missed;
+      if (parseInt(member.vote_id.charAt(0)) === 0) {
+        voteType = "committees";
+        voteActive =
+          globalProperties["active_committee_members"].indexOf(member.id) >= 0
+            ? true
+            : false;
+      } else {
+        voteType = "witnesses";
+        voteActive =
+          globalProperties["active_witnesses"].indexOf(member.id) >= 0
+            ? true
+            : false;
+        missedBlocks = (member as WitnessAccount).total_missed;
       }
-      const name = votesIds.filter((voteId) => voteId[1] === vote.id)[0][0];
-
-      const votesAsset = formKnownAssetBalanceById(
+      const name = allMemberIds.filter(
+        (memberId) => memberId[1] === member.id
+      )[0][0];
+      const votesAsset = formAssetBalance(
         defaultAsset,
-        Number(vote.total_votes)
+        Number(member.total_votes)
       );
 
       return {
-        id: vote.vote_id,
-        key: vote.vote_id,
+        id: member.vote_id,
+        key: member.vote_id,
         rank: 0,
         type: voteType,
         name: name,
-        url: vote.url,
+        url: member.url,
         votes: `${votesAsset?.amount} ${votesAsset?.symbol}`,
         missedBlocks: missedBlocks,
         possibleAction: undefined,
         active: voteActive,
-        status: status,
+        status: tabServerApprovedVotesIds.some((id) => id === member.vote_id)
+          ? VoteStatus.APPROVED
+          : VoteStatus.UNAPPROVED,
       } as VoteRow;
     },
-    [formKnownAssetBalanceById]
+    [formAssetBalance, tabServerApprovedVotesIds]
   );
+
+  const formSonVoteRow = useCallback(
+    (
+      member: SonAccount,
+      allMemberIds: [string, string][],
+      defaultAsset: Asset,
+      globalProperties: GlobalProperties
+    ): VoteRow => {
+      // Maybe some chains are missing for the member
+      const { bitcoinVoteId, ethereumVoteId, hiveVoteId } =
+        getSonAccountVoteId(member);
+      const memberHasBitcoinChain = bitcoinVoteId !== undefined;
+      const memberHasEthereumChain = ethereumVoteId !== undefined;
+      const memberHasHiveChain = hiveVoteId !== undefined;
+
+      // Statuses
+      const bitcoinStatus = tabServerApprovedVotesIds.some(
+        (id) => id === bitcoinVoteId
+      )
+        ? VoteStatus.APPROVED
+        : VoteStatus.UNAPPROVED;
+      const ethereumStatus = tabServerApprovedVotesIds.some(
+        (id) => id === ethereumVoteId
+      )
+        ? VoteStatus.APPROVED
+        : VoteStatus.UNAPPROVED;
+      const hiveStatus = tabServerApprovedVotesIds.some(
+        (id) => id === hiveVoteId
+      )
+        ? VoteStatus.APPROVED
+        : VoteStatus.UNAPPROVED;
+      const statuses = {
+        bitcoin: !memberHasBitcoinChain ? undefined : bitcoinStatus,
+        ethereum: !memberHasEthereumChain ? undefined : ethereumStatus,
+        hive: !memberHasHiveChain ? undefined : hiveStatus,
+      };
+
+      // Actives
+      const { bitcoinActiveSonsIds, ethereumActiveSonsIds, hiveActiveSonsIds } =
+        getActiveSons(globalProperties);
+      const { bitcoinVoteAsset, ethereumVoteAsset, hiveVoteAsset } =
+        getSonAccountVotes(member, defaultAsset);
+      const bitcoinActive =
+        bitcoinActiveSonsIds.indexOf(member.id) >= 0 ? true : false;
+      const ethereumActive =
+        ethereumActiveSonsIds.indexOf(member.id) >= 0 ? true : false;
+      const hiveActive =
+        hiveActiveSonsIds.indexOf(member.id) >= 0 ? true : false;
+      const actives = {
+        bitcoin: !memberHasBitcoinChain ? undefined : bitcoinActive,
+        ethereum: !memberHasEthereumChain ? undefined : ethereumActive,
+        hive: !memberHasHiveChain ? undefined : hiveActive,
+      };
+
+      // Common properties
+      const name = allMemberIds.filter(
+        (memberId) => memberId[1] === member.id
+      )[0][0];
+      const votesAsset = formAssetBalance(
+        defaultAsset,
+        Number(sum(member.total_votes.map((member) => member[1])))
+      );
+      const activeChains: string[] = [];
+      if (actives.bitcoin) activeChains.push(Sidechain.BITCOIN);
+      if (actives.ethereum) activeChains.push(Sidechain.ETHEREUM);
+      if (actives.hive) activeChains.push(Sidechain.HIVE);
+      let approvals = 0;
+      //loop through statuses and count approvals
+      Object.values(statuses).forEach((status) => {
+        if (status === VoteStatus.APPROVED) approvals++;
+      });
+      let status;
+      switch (true) {
+        case approvals < 1:
+          //no approvals
+          status = VoteStatus.UNAPPROVED;
+          break;
+        case approvals <
+          Object.values(statuses).filter((status) => status !== undefined)
+            .length:
+          //partial approval
+          status = VoteStatus.PARTIALLY_APPROVED;
+          break;
+        case approvals ===
+          Object.values(statuses).filter((status) => status !== undefined)
+            .length:
+          //full approvals
+          status = VoteStatus.APPROVED;
+          break;
+        default:
+          status = VoteStatus.UNAPPROVED;
+      }
+
+      return {
+        id: member.id,
+        key: member.id,
+        rank: 0,
+        type: "sons",
+        name: name,
+        url: member.url,
+        possibleAction: undefined,
+        status: status,
+        active: Object.values(actives).some((active) => !active) ? false : true,
+        votes: `${votesAsset?.amount} ${votesAsset?.symbol}`,
+        // son specific
+        hasSidechains: {
+          bitcoin: memberHasBitcoinChain,
+          ethereum: memberHasEthereumChain,
+          hive: memberHasHiveChain,
+        },
+        activeChains: activeChains,
+        actives: actives,
+        statuses: statuses,
+        possibleActions: {
+          bitcoin: undefined,
+          ethereum: undefined,
+          hive: undefined,
+        },
+        sidechainVotes: {
+          bitcoin: `${bitcoinVoteAsset?.amount} ${bitcoinVoteAsset?.symbol}`,
+          ethereum: `${ethereumVoteAsset?.amount} ${ethereumVoteAsset?.symbol}`,
+          hive: `${hiveVoteAsset?.amount} ${hiveVoteAsset?.symbol}`,
+        },
+        sidechainVotesIds: {
+          bitcoin: bitcoinVoteId,
+          ethereum: ethereumVoteId,
+          hive: hiveVoteId,
+        },
+      } as VoteRow;
+    },
+    [
+      getActiveSons,
+      getSonAccountVotes,
+      getSonAccountVoteId,
+      formAssetBalance,
+      tabServerApprovedVotesIds,
+    ]
+  );
+
   const tableRows = useMemo(() => {
     if (
       !votesLoading &&
       defaultAsset !== undefined &&
       globalProperties !== undefined
     ) {
-      return sortVotesRows(
-        tabAllMembers.map((member) => {
-          return formVoteRow(
-            member,
-            allMembersIds,
-            fullAccount?.votes.some((vote) => vote.id === member.id)
-              ? "approved"
-              : "unapproved",
-            defaultAsset,
-            globalProperties
-          );
-        })
-      );
+      if (tab === "sons") {
+        return sortVotesRows(
+          tabAllMembers.map((member) => {
+            return formSonVoteRow(
+              member as SonAccount,
+              allMembersIds,
+              defaultAsset,
+              globalProperties
+            );
+          })
+        );
+      } else {
+        return sortVotesRows(
+          tabAllMembers.map((member) => {
+            return formCommitteeWitnessVoteRow(
+              member as WitnessAccount | CommitteeMember,
+              allMembersIds,
+              defaultAsset,
+              globalProperties
+            );
+          })
+        );
+      }
+    } else {
+      return [] as VoteRow[];
     }
-    return [] as VoteRow[];
   }, [
     votesLoading,
     defaultAsset,
     globalProperties,
+    tab,
     sortVotesRows,
     tabAllMembers,
-    formVoteRow,
+    formCommitteeWitnessVoteRow,
+    formSonVoteRow,
     allMembersIds,
     fullAccount,
   ]);
@@ -192,12 +348,19 @@ export function useVoteTab({
   // Trx and fee creation
   const createUpdateAccountTrx = useCallback(
     (localApprovedVotesIds: string[]) => {
+      const witnessesIdentifiers = [WITNESS_VOTE_IDENTIFIER];
+      const committeesIdentifiers = [COMMITTEE_VOTE_IDENTIFIER];
+      const sonsIdentifiers = [
+        BITCOIN_SON_VOTE_IDENTIFIER,
+        HIVE_SON_VOTE_IDENTIFIER,
+        ETHEREUM_SON_VOTE_IDENTIFIER,
+      ];
       const membersIdentifiers: {
-        [tab: string]: number;
+        [tab: string]: number[];
       } = {
-        witnesses: 1,
-        sons: 3,
-        committees: 0,
+        witnesses: witnessesIdentifiers,
+        sons: sonsIdentifiers,
+        committees: committeesIdentifiers,
       };
       const memberIdentifier =
         membersIdentifiers[tab] !== undefined
@@ -205,24 +368,15 @@ export function useVoteTab({
           : membersIdentifiers["witnesses"];
 
       if (fullAccount !== undefined && id) {
-        const new_options = {
-          extensions: [...fullAccount.account.options.extensions],
-          memo_key: fullAccount.account.options.memo_key,
-          num_committee: fullAccount.account.options.num_committee,
-          num_witness: fullAccount.account.options.num_witness,
-          num_son: fullAccount.account.options.num_son,
-          votes: [...fullAccount.account.options.votes],
-          voting_account: fullAccount.account.options.voting_account,
-        } as AccountOptions;
+        const new_options = cloneDeep(fullAccount.account.options);
 
         // Other tabs approved votes
-        const allTabsServerApprovedVotes = fullAccount.votes;
-        const otherTabsServerApprovedVotesIds = allTabsServerApprovedVotes
-          .filter(
-            (approvedVote) =>
-              parseInt(approvedVote.vote_id.split(":")[0]) !== memberIdentifier
-          )
-          .map((otherMember) => otherMember.vote_id);
+        const allTabsServerApprovedVotesIds = fullAccount.account.options.votes;
+        const otherTabsServerApprovedVotesIds =
+          allTabsServerApprovedVotesIds.filter(
+            (approvedVoteId) =>
+              !memberIdentifier.includes(parseInt(approvedVoteId.split(":")[0]))
+          );
 
         const allApprovedVotesIds = [
           ...localApprovedVotesIds,
@@ -238,20 +392,36 @@ export function useVoteTab({
             return parseInt(aSplit[1], 10) - parseInt(bSplit[1], 10);
           });
 
-        new_options.num_witness = allApprovedVotesIds.filter(
-          (voteId) => parseInt(voteId.split(":")[0]) === 1
+        new_options.num_witness = allApprovedVotesIds.filter((voteId) =>
+          witnessesIdentifiers.includes(parseInt(voteId.split(":")[0]))
         ).length;
-        new_options.num_committee = allApprovedVotesIds.filter(
-          (voteId) => parseInt(voteId.split(":")[0]) === 0
+        new_options.num_committee = allApprovedVotesIds.filter((voteId) =>
+          committeesIdentifiers.includes(parseInt(voteId.split(":")[0]))
         ).length;
-        new_options.num_son = allApprovedVotesIds.filter(
-          (voteId) => parseInt(voteId.split(":")[0]) === 3
+        const bitcoin_num_son = allApprovedVotesIds.filter(
+          (voteId) =>
+            parseInt(voteId.split(":")[0]) === BITCOIN_SON_VOTE_IDENTIFIER
         ).length;
+        const ethereum_num_son = allApprovedVotesIds.filter(
+          (voteId) =>
+            parseInt(voteId.split(":")[0]) === ETHEREUM_SON_VOTE_IDENTIFIER
+        ).length;
+        const hive_num_son = allApprovedVotesIds.filter(
+          (voteId) =>
+            parseInt(voteId.split(":")[0]) === HIVE_SON_VOTE_IDENTIFIER
+        ).length;
+        new_options.extensions.num_son = [
+          [Sidechain.BITCOIN, bitcoin_num_son],
+          [Sidechain.ETHEREUM, ethereum_num_son],
+          [Sidechain.HIVE, hive_num_son],
+        ];
 
         const trx = buildUpdateAccountTransaction(
           {
             new_options,
-            extensions: { value: { update_last_voting_time: true } },
+            extensions: {
+              value: { update_last_voting_time: true },
+            },
           },
           id
         );
@@ -349,6 +519,84 @@ export function useVoteTab({
     ]
   );
 
+  const voteToAllSidechains = useCallback(
+    (sonAccountId: string) => {
+      const sonRow = tableRows.find(
+        (row) => row.id === sonAccountId
+      ) as VoteRow;
+      if (sonRow.sidechainVotesIds) {
+        const votesIds = Object.values(sonRow.sidechainVotesIds).filter(
+          (voteId) => voteId !== undefined
+        );
+        const newLocalApprovedVotesIds = uniq([
+          ...localApprovedVotesIds,
+          ...votesIds,
+        ]);
+        setLocalApprovedVotesIds(newLocalApprovedVotesIds);
+        const votesChanged = checkVotesChanged(
+          tabServerApprovedVotesIds,
+          newLocalApprovedVotesIds
+        );
+        setIsVotesChanged(votesChanged);
+        setConfirmed(false);
+        calculateAndSetFee(newLocalApprovedVotesIds);
+        if (afterCloseTransactionModal.current) {
+          afterCloseTransactionModal.current = undefined;
+        }
+      }
+    },
+    [
+      tableRows,
+      localApprovedVotesIds,
+      setLocalApprovedVotesIds,
+      checkVotesChanged,
+      tabServerApprovedVotesIds,
+      setIsVotesChanged,
+      setConfirmed,
+      calculateAndSetFee,
+      afterCloseTransactionModal,
+      afterCloseTransactionModal.current,
+    ]
+  );
+
+  const removeAllSidechainsVotes = useCallback(
+    (sonAccountId: string) => {
+      const sonRow = tableRows.find(
+        (row) => row.id === sonAccountId
+      ) as VoteRow;
+      if (sonRow.sidechainVotesIds) {
+        const votesIds = Object.values(sonRow.sidechainVotesIds).filter(
+          (voteId) => voteId !== undefined
+        );
+        const newLocalApprovedVotesIds = localApprovedVotesIds.filter(
+          (vote_id) => !votesIds.includes(vote_id)
+        );
+        setLocalApprovedVotesIds(newLocalApprovedVotesIds);
+        const votesChanged = checkVotesChanged(
+          tabServerApprovedVotesIds,
+          newLocalApprovedVotesIds
+        );
+        setIsVotesChanged(votesChanged);
+        setConfirmed(false);
+        calculateAndSetFee(newLocalApprovedVotesIds);
+        if (afterCloseTransactionModal.current) {
+          afterCloseTransactionModal.current = undefined;
+        }
+      }
+    },
+    [
+      tableRows,
+      localApprovedVotesIds,
+      setLocalApprovedVotesIds,
+      checkVotesChanged,
+      tabServerApprovedVotesIds,
+      setIsVotesChanged,
+      setConfirmed,
+      calculateAndSetFee,
+      afterCloseTransactionModal,
+      afterCloseTransactionModal.current,
+    ]
+  );
   // submit changes
   const validateVoting = useCallback(
     (votingFee: number) => {
@@ -480,5 +728,7 @@ export function useVoteTab({
     updateAccountFee,
     localApprovedVotesIds,
     afterSuccessTransactionModalClose: afterCloseTransactionModal.current,
+    voteToAllSidechains,
+    removeAllSidechainsVotes,
   };
 }

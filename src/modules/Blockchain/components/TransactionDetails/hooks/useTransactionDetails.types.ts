@@ -7,4 +7,7 @@ export type UseTransactionDetails = {
   hasNextTransition: boolean;
   hasPreviousTransition: boolean;
   loadingSideTransactions: boolean;
+  trxInBlock: number;
+  nextTransactionId: string | undefined;
+  previousTransactionId: string | undefined;
 };

@@ -75,7 +75,7 @@ export function useAssetsTab(): UseAssetsTabResult {
             key: asset.id,
             id: asset.id,
             symbol: asset.symbol,
-            name: utils.getBlockchainFromSymbol(asset.symbol),
+            name: utils.getNativeBlockchainFromAssetSymbol(asset.symbol),
             maxSupply: Number(asset.options.max_supply),
             precision: asset.precision,
             issuer: issuer ? issuer.name : "",

@@ -13,10 +13,12 @@ export function useDownloadBitcoinKeys({
   getSidechainAccounts,
 }: Args): UseDownloadBitcoinKeysResult {
   const [downloaded, setDownloaded] = useState<boolean>(true);
-  const { bitcoinSidechainAccounts, setBitcoinSidechainAccounts } =
-    useGenerateBitcoinAddress(getSidechainAccounts);
+  const {
+    sessionBitcoinSidechainAccounts,
+    setSessionBitcoinSidechainAccounts,
+  } = useGenerateBitcoinAddress(getSidechainAccounts);
 
-  if (bitcoinSidechainAccounts && downloaded) {
+  if (sessionBitcoinSidechainAccounts && downloaded) {
     setDownloaded(false);
   }
 
@@ -33,16 +35,16 @@ export function useDownloadBitcoinKeys({
       )} (${counterpart.translate(
       "file_content.btc_deposit_account_description"
     )}) ######
-      \nAddress: ${bitcoinSidechainAccounts?.deposit.address}
-      \nPublic Key: ${bitcoinSidechainAccounts?.deposit.pubKey}
-      \nPrivate Key: ${bitcoinSidechainAccounts?.deposit.privateKey}
+      \nAddress: ${sessionBitcoinSidechainAccounts?.deposit.address}
+      \nPublic Key: ${sessionBitcoinSidechainAccounts?.deposit.pubKey}
+      \nPrivate Key: ${sessionBitcoinSidechainAccounts?.deposit.privateKey}
       \n
       \n###### ${counterpart.translate(
         `file_content.btc_withdraw_account`
       )} ######
-      \nAddress: ${bitcoinSidechainAccounts?.withdraw.address}
-      \nPublic Key: ${bitcoinSidechainAccounts?.withdraw.pubKey}
-      \nPrivate Key: ${bitcoinSidechainAccounts?.withdraw.privateKey}
+      \nAddress: ${sessionBitcoinSidechainAccounts?.withdraw.address}
+      \nPublic Key: ${sessionBitcoinSidechainAccounts?.withdraw.pubKey}
+      \nPrivate Key: ${sessionBitcoinSidechainAccounts?.withdraw.privateKey}
       \n
         `;
 
@@ -56,7 +58,7 @@ export function useDownloadBitcoinKeys({
     element.click();
     element.remove();
     setDownloaded(true);
-    setBitcoinSidechainAccounts(undefined);
+    setSessionBitcoinSidechainAccounts(undefined);
   };
 
   return { downloaded, downloadPrivateKeys };

@@ -22,7 +22,7 @@ export function useCommitteeTab(): UseCommitteeTabResult {
   const [committeeTableRows, setCommitteeTableRows] =
     useState<CommitteeTableRow[]>();
 
-  const { formKnownAssetBalanceById } = useAsset();
+  const { formAssetBalance } = useAsset();
   const { defaultAsset } = useAssetsContext();
   const { updateArrayWithLimit } = useArrayLimiter();
   const { getCommittees } = useMembers();
@@ -36,7 +36,7 @@ export function useCommitteeTab(): UseCommitteeTabResult {
           committees.sort((a, b) => b.total_votes - a.total_votes);
 
           const committeeRows = committees.map((committee, index) => {
-            const votesAsset = formKnownAssetBalanceById(
+            const votesAsset = formAssetBalance(
               defaultAsset,
               Number(committee.total_votes)
             );
@@ -69,12 +69,7 @@ export function useCommitteeTab(): UseCommitteeTabResult {
         console.log(e);
       }
     }
-  }, [
-    defaultAsset,
-    getCommittees,
-    formKnownAssetBalanceById,
-    updateArrayWithLimit,
-  ]);
+  }, [defaultAsset, getCommittees, formAssetBalance, updateArrayWithLimit]);
 
   useEffect(() => {
     let ignore = false;

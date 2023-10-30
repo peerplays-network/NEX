@@ -74,7 +74,7 @@ export const LogoSelectOption = (props: LogoSelectionProps): JSX.Element => {
               : icons["Default"]}
           </Styled.IconContainer>
           <Styled.AssetName>
-            {`${utils.getBlockchainFromSymbol(props.value)}`}{" "}
+            {`${utils.getNativeBlockchainFromAssetSymbol(props.value)}`}{" "}
             {`(${props.value})`}
           </Styled.AssetName>
         </Styled.OptionDiv>
@@ -96,7 +96,7 @@ export const LogoSelectOption = (props: LogoSelectionProps): JSX.Element => {
                     : icons["Default"]}
                 </Styled.IconContainer>
                 <Styled.AssetName>
-                  {`${utils.getBlockchainFromSymbol(asset.symbol)}`}{" "}
+                  {`${utils.getNativeBlockchainFromAssetSymbol(asset.symbol)}`}{" "}
                   {`(${asset.symbol})`}
                 </Styled.AssetName>
               </Styled.OptionDiv>

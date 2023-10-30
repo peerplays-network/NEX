@@ -253,22 +253,22 @@ describe("Testing utils functions ", () => {
 
   describe("getBlockchainFromSymbol function", () => {
     it('the blockchain for "HIVE" is Hive', () => {
-      expect(utils.getBlockchainFromSymbol("HIVE")).toBe("Hive");
+      expect(utils.getNativeBlockchainFromAssetSymbol("HIVE")).toBe("Hive");
     });
     it('the blockchain for "Hive" is Hive', () => {
-      expect(utils.getBlockchainFromSymbol("Hive")).toBe("Hive");
+      expect(utils.getNativeBlockchainFromAssetSymbol("Hive")).toBe("Hive");
     });
     it('the blockchain for the symbol "ETH" is Ethereum', () => {
-      expect(utils.getBlockchainFromSymbol("ETH")).toBe("Ethereum");
+      expect(utils.getNativeBlockchainFromAssetSymbol("ETH")).toBe("Ethereum");
     });
     it('the blockchain for the symbol "eth" is Ethereum', () => {
-      expect(utils.getBlockchainFromSymbol("eth")).toBe("Ethereum");
+      expect(utils.getNativeBlockchainFromAssetSymbol("eth")).toBe("Ethereum");
     });
     it('the blockchain for the symbol "BTC" is Bitcoin', () => {
-      expect(utils.getBlockchainFromSymbol("BTC")).toBe("Bitcoin");
+      expect(utils.getNativeBlockchainFromAssetSymbol("BTC")).toBe("Bitcoin");
     });
     it('the blockchain for the symbol "btc" is Bitcoin', () => {
-      expect(utils.getBlockchainFromSymbol("btc")).toBe("Bitcoin");
+      expect(utils.getNativeBlockchainFromAssetSymbol("btc")).toBe("Bitcoin");
     });
   });
 });

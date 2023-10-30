@@ -2,6 +2,7 @@ import {
   Account,
   Asset,
   BitcoinSidechainAccounts,
+  EthereumSidechainAccounts,
   KeyType,
   SidechainAccount,
 } from "../../types";
@@ -9,13 +10,14 @@ import {
 export type UserContextType = {
   localStorageAccount: string;
   setLocalStorageAccount: (value: string) => void;
+
   id: string;
   name: string;
   assets: Asset[];
   password: string;
   keyType: KeyType;
-  bitcoinSidechainAccounts: BitcoinSidechainAccounts;
-  setBitcoinSidechainAccounts: (value: BitcoinSidechainAccounts) => void;
+  account: Account | undefined;
+
   updateAccount: (
     id: string,
     name: string,
@@ -23,13 +25,24 @@ export type UserContextType = {
     account: Account | undefined
   ) => void;
   setAssets: (assets: Asset[]) => void;
-  account: Account | undefined;
   savePassword: (password: string, keyType: KeyType) => void;
   removePassword: () => void;
-  hasBTCDepositAddress: boolean;
-  hasBTCWithdrawPublicKey: boolean;
+
   getSidechainAccounts: (accountId: string) => Promise<void>;
-  sidechainAccounts: SidechainAccount[];
-  bitcoinSidechainAccount: SidechainAccount | undefined;
+  sidechainAccounts: {
+    [sidechain: string]:
+      | {
+          account: SidechainAccount;
+          hasDepositAddress: boolean;
+        }
+      | undefined;
+  };
   loadingSidechainAccounts: boolean;
+
+  sessionBitcoinSidechainAccounts: BitcoinSidechainAccounts;
+  setSessionBitcoinSidechainAccounts: (value: BitcoinSidechainAccounts) => void;
+  sessionEthereumSidechainAccounts: EthereumSidechainAccounts;
+  setSessionEthereumSidechainAccounts: (
+    value: EthereumSidechainAccounts
+  ) => void;
 };

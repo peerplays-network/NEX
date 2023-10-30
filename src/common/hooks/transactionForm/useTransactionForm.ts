@@ -52,7 +52,9 @@ export function useTransactionForm({
     if (
       !savedPassword ||
       savedPassword === "" ||
-      (savedKeyType !== "password" && savedKeyType !== neededKeyType)
+      (savedKeyType !== "password" &&
+        savedKeyType !== "owner" &&
+        savedKeyType !== neededKeyType)
     ) {
       setIsPasswordModalVisible(true);
       // Needed key exists

@@ -45,7 +45,7 @@ export function useOrderForm({
   const { buildTrx } = useTransactionBuilder();
   const { assets, id, localStorageAccount } = useUserContext();
   const { formAccountBalancesByName } = useAccount();
-  const { limitByPrecision, roundNum } = useAsset();
+  const { limitByPrecision } = useAsset();
   const router = useRouter();
   const { pair } = router.query;
   const {
@@ -162,7 +162,7 @@ export function useOrderForm({
           Number(allValues.amount) > 0
         ) {
           orderForm.setFieldsValue({
-            total: roundNum(
+            total: limitByPrecision(
               Number(allValues.price) * Number(allValues.amount),
               baseRoundTo
             ),

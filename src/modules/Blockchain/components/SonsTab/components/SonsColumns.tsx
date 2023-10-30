@@ -1,22 +1,29 @@
 import counterpart from "counterpart";
 import Link from "next/link";
 
+import {
+  BITCOIN_NETWORK,
+  ETHEREUM_NETWORK,
+  HIVE_NETWORK,
+} from "../../../../../api/params";
 import { TableHeading } from "../../../../../common/components";
 import * as Styled from "../SonsTab.styled";
 import { SonsTableRow } from "../hooks";
 
-const headings = ["rank", "name", "active", "url", "total_votes"];
-const keys = ["rank", "name", "active", "url", "totalVotes"];
+const headings = ["rank", "name", "account_id", "url", "active_chains"];
+const keys = ["rank", "name", "accountId", "url", "activeChains"];
 const renders = [
+  //rank
   undefined,
+  //name
   (name: string): JSX.Element => (
     <Link href={`/user/${name}`} target="_blank">
       {name}
     </Link>
   ),
-  (active: boolean): JSX.Element => (
-    <span>{active === true ? <Styled.ActiveIcon /> : ``}</span>
-  ),
+  //accountId
+  undefined,
+  //url
   (url: string): JSX.Element => (
     <>
       {!url || url === "" ? (
@@ -28,40 +35,54 @@ const renders = [
       )}
     </>
   ),
-  undefined,
+  //activeChains
+  (activeChains: string[]): JSX.Element => (
+    <>
+      <span>{activeChains.join(", ")}</span>
+    </>
+  ),
 ];
 const filters = [
+  //rank
   undefined,
+  //name
   undefined,
+  //accountId
+  undefined,
+  //url
+  undefined,
+  //activeChains
   [
     {
-      text: counterpart.translate(`tableFilters.active`),
-      value: true,
+      text: BITCOIN_NETWORK,
+      value: BITCOIN_NETWORK.toLowerCase(),
     },
     {
-      text: counterpart.translate(`tableFilters.inactive`),
-      value: false,
+      text: ETHEREUM_NETWORK,
+      value: ETHEREUM_NETWORK.toLowerCase(),
+    },
+    {
+      text: HIVE_NETWORK,
+      value: HIVE_NETWORK.toLowerCase(),
     },
   ],
-  undefined,
-  undefined,
 ];
-const filterModes = [undefined, undefined, "menu", undefined, undefined];
-const filterSearch = [undefined, undefined, false, undefined, undefined];
+const filterModes = [undefined, undefined, undefined, undefined, "menu"];
+const filterSearch = [undefined, undefined, undefined, undefined, false];
 const onFilters = [
   undefined,
   undefined,
-  (value: boolean, record: SonsTableRow): boolean => record.active === value,
   undefined,
   undefined,
+  (value: string, record: SonsTableRow): boolean =>
+    record.activeChains.includes(value),
 ];
 const sorters = [
   (a: { rank: number }, b: { rank: number }) => a.rank - b.rank,
   undefined,
   undefined,
   undefined,
-  (a: { totalVotes: string }, b: { totalVotes: string }) =>
-    parseFloat(a.totalVotes) - parseFloat(b.totalVotes),
+  undefined,
 ];
 
 export type SonColumnType = {
@@ -70,17 +91,18 @@ export type SonColumnType = {
   key: string;
   render:
     | ((name: string) => JSX.Element)
-    | ((active: boolean) => JSX.Element)
+    | ((url: string) => JSX.Element)
+    | ((activeChains: string[]) => JSX.Element)
     | undefined;
   filters:
     | {
         text: string;
-        value: boolean;
+        value: string;
       }[]
     | undefined;
   filterMode: string | undefined;
   filterSearch: boolean | undefined;
-  onFilter: ((value: boolean, record: SonsTableRow) => boolean) | undefined;
+  onFilter: ((value: string, record: SonsTableRow) => boolean) | undefined;
   sorter:
     | ((
         a: {
@@ -88,14 +110,6 @@ export type SonColumnType = {
         },
         b: {
           rank: number;
-        }
-      ) => number)
-    | ((
-        a: {
-          totalVotes: string;
-        },
-        b: {
-          totalVotes: string;
         }
       ) => number)
     | undefined;

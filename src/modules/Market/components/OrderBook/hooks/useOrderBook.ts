@@ -24,7 +24,7 @@ type Args = {
 };
 
 export function useOrderBook({ currentPair }: Args): UseOrderBookResult {
-  const { roundNum } = useAsset();
+  const { limitByPrecision } = useAsset();
   const { selectedPair, asks, bids, loadingAsksBids, lastTradeHistory } =
     useMarketContext();
   const { lg, xxl } = useViewportContext();
@@ -108,8 +108,8 @@ export function useOrderBook({ currentPair }: Args): UseOrderBookResult {
       const updatedAsks = groupedAsks.map((asks, index) => {
         return {
           key: `${threshold}-ask-${index}`,
-          quote: roundNum(asks.quote, selectedPair.quote.precision),
-          base: roundNum(asks.base, selectedPair.base.precision),
+          quote: limitByPrecision(asks.quote, selectedPair.quote.precision),
+          base: limitByPrecision(asks.base, selectedPair.base.precision),
           isBuyOrder: false,
           price:
             Number(asks.price) >= Number(asks.maxPrice)
@@ -122,7 +122,7 @@ export function useOrderBook({ currentPair }: Args): UseOrderBookResult {
       const reducedAsks = reduceOrdersByPrice(updatedAsks);
       return reducedAsks;
     },
-    [roundNum, reduceOrdersByPrice]
+    [limitByPrecision, reduceOrdersByPrice]
   );
 
   const groupBidsByThreshold = useCallback(
@@ -154,8 +154,8 @@ export function useOrderBook({ currentPair }: Args): UseOrderBookResult {
       const updatedBids = groupedBids.map((bids, index) => {
         return {
           key: `${threshold}-bid-${index}`,
-          quote: roundNum(bids.quote, selectedPair.quote.precision),
-          base: roundNum(bids.base, selectedPair.base.precision),
+          quote: limitByPrecision(bids.quote, selectedPair.quote.precision),
+          base: limitByPrecision(bids.base, selectedPair.base.precision),
           isBuyOrder: true,
           price:
             Number(bids.price) <= Number(bids.minPrice)
@@ -169,7 +169,7 @@ export function useOrderBook({ currentPair }: Args): UseOrderBookResult {
 
       return reducedBids;
     },
-    [roundNum, reduceOrdersByPrice]
+    [limitByPrecision, reduceOrdersByPrice]
   );
 
   const asksRows: MarketOrder[] = useMemo(() => {

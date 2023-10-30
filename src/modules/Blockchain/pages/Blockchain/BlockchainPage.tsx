@@ -15,9 +15,10 @@ const BlockchainPage: NextPage = () => {
   const router = useRouter();
   const [visible, setVisible] = useState<boolean>(false);
   const { block, tab } = router.query;
+
   const { pageMeta, blockNum, transactionId } = useBlockchainPage(tab, block);
   const { width } = useViewportContext();
-  const blockchainTabItems = BlockchainTabItems(block, blockNum, transactionId);
+  const blockchainTabItems = BlockchainTabItems(blockNum, transactionId);
   const mobileMenuBreakpoint = 790;
   const renderTabBar = MobileTabBar({
     showMobileMenu: width <= mobileMenuBreakpoint,

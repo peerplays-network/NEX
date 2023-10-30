@@ -19,7 +19,7 @@ type Args = {
 export function useFormTabs({ isBuyForm }: Args): UseFormTabsResult {
   const { asks, bids, buyOrderForm, sellOrderForm, selectedPair } =
     useMarketContext();
-  const { roundNum } = useAsset();
+  const { limitByPrecision } = useAsset();
 
   const targetOrders = isBuyForm ? asks : bids;
   const orderForm = useMemo(() => {
@@ -96,12 +96,12 @@ export function useFormTabs({ isBuyForm }: Args): UseFormTabsResult {
       } else if (activeKey === "market") {
         orderForm.setFieldsValue({
           price: isBuyForm
-            ? roundNum(
+            ? limitByPrecision(
                 Number((targetOrders as MarketOrder[])[0].price) +
                   10 ** -precisions.price,
                 precisions.price
               )
-            : roundNum(
+            : limitByPrecision(
                 Number((targetOrders as MarketOrder[])[0].price) -
                   10 ** -precisions.price,
                 precisions.price

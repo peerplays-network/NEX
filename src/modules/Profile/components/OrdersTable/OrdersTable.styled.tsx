@@ -81,6 +81,7 @@ export const OrderItemContent = styled.div`
       color: ${colors.textColorSecondary};
     }
     .activity-info-value {
+      word-break: break-all;
       font-weight: 500;
     }
   }

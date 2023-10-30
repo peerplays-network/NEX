@@ -8,8 +8,8 @@ import React, {
   useState,
 } from "react";
 
-import { usePeerplaysApiContext } from "..";
-import { FeeParameter, GlobalProperties } from "../../types";
+import { useBlockchain } from "../../hooks";
+import { FeeParameter } from "../../types";
 
 import { FeesContextType } from "./FeesProvider.types";
 
@@ -29,19 +29,19 @@ export const FeesProvider = ({ children }: Props): JSX.Element => {
   const [loadingFeeParameters, setLoadingFeeParameters] =
     useState<boolean>(true);
 
-  const { dbApi } = usePeerplaysApiContext();
+  const { getGlobalProperties } = useBlockchain();
 
   const getFeesFromGlobal = useCallback(async () => {
     try {
-      const globalProperties: GlobalProperties = await dbApi(
-        "get_global_properties"
-      );
-      const feeParameters = globalProperties.parameters.current_fees.parameters;
+      const gpo = await getGlobalProperties();
+      const feeParameters = gpo
+        ? gpo.parameters.current_fees.parameters
+        : undefined;
       return feeParameters;
     } catch (e) {
       console.log(e);
     }
-  }, [dbApi]);
+  }, [getGlobalProperties]);
 
   useEffect(() => {
     let ignore = false;

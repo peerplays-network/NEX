@@ -13,7 +13,7 @@ import { Reset as UiReset } from "../../../../../ui/src/icons";
 export const VoteFormWrapper = styled.div`
   padding: 0 25px;
   background-color: ${colors.white};
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     padding: 0 35px;
     background-color: unset;
     min-height: 86px;
@@ -28,7 +28,7 @@ export const VoteForm = styled(Form)`
   max-width: 100%;
   padding-top: 16px;
   padding-bottom: 16px;
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     padding-top: 0;
     padding-bottom: 0;
   }
@@ -38,13 +38,13 @@ export const ActionsContainer = styled.div`
   display: flex;
   justify-content: center;
   flex-wrap: wrap;
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     justify-content: flex-start;
   }
   .ant-tooltip-disabled-compatible-wrapper {
     min-width: 85%;
     text-align: center;
-    ${breakpoint.sm} {
+    ${breakpoint.md} {
       min-width: unset;
     }
   }
@@ -53,7 +53,7 @@ export const ActionsContainer = styled.div`
 export const Publish = styled(Button)`
   min-width: 85%;
   font-size: 12px;
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     min-width: 185px;
     font-size: 16px;
   }
@@ -64,7 +64,7 @@ export const CardFormLinkButton = styled(Button)`
   background: none;
   border: none;
   color: ${colors.additionalBlue};
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     font-size: 16px;
   }
 `;
@@ -76,7 +76,7 @@ export const CardFormLinkButtonDisabled = styled(Button)`
   color: rgba(0, 0, 0, 0.25);
   cursor: not-allowed;
   pointer-events: none;
-  ${breakpoint.sm} {
+  ${breakpoint.md} {
     font-size: 16px;
   }
 `;

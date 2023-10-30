@@ -1,10 +1,13 @@
 import counterpart from "counterpart";
+import { useMemo } from "react";
 
 import {
+  BITCOIN_ASSET_SYMBOL,
   BITCOIN_NETWORK,
-  defaultNetwork,
+  DEFAULT_NETWORK,
   defaultToken,
-  HIVE_NETWORK,
+  ETHEREUM_ASSET_SYMBOL,
+  ETHEREUM_NETWORK,
 } from "../../../../../../api/params";
 import { utils } from "../../../../../../api/utils";
 import {
@@ -14,10 +17,12 @@ import {
 import { useAsset, useTransactionForm } from "../../../../../../common/hooks";
 import { Form, Input, Progress } from "../../../../../../ui/src";
 import BitcoinIcon from "../../../../../../ui/src/icons/Cryptocurrencies/BitcoinIcon.svg";
+import EthereumIcon from "../../../../../../ui/src/icons/Cryptocurrencies/EthereumIcon.svg";
 import HIVEIcon from "../../../../../../ui/src/icons/Cryptocurrencies/HIVEIcon.svg";
 import PPYIcon from "../../../../../../ui/src/icons/Cryptocurrencies/PPYIcon.svg";
 
 import * as Styled from "./SendForm.styled";
+import { TransactionDetails } from "./components";
 import { useSendForm } from "./hooks";
 
 type Props = {
@@ -45,6 +50,7 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
     toAccount,
     selectedAssetPrecision,
     btcTransferFee,
+    ethTransferFee,
     afterTransactionModalClose,
   } = useSendForm({
     assetSymbol,
@@ -56,6 +62,7 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
     Peerplays: <PPYIcon height="20" width="20" />,
     Hive: <HIVEIcon height="20" width="20" />,
     Bitcoin: <BitcoinIcon height="20" width="20" />,
+    Ethereum: <EthereumIcon height="20" width="20" />,
   };
 
   const {
@@ -70,87 +77,26 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
     neededKeyType: "active",
   });
 
-  const precisedAmount = limitByPrecision(
-    String(amount),
-    selectedAssetPrecision
-  );
-
-  const feeLabel =
-    selectedBlockchain === BITCOIN_NETWORK
-      ? counterpart.translate(`field.labels.estimated_fees_label`)
-      : counterpart.translate(`field.labels.fees_label`);
-
-  const feeSummary: (inTotal?: boolean) => string | JSX.Element = (
-    inTotal = false
-  ) => {
-    const bitcoinNetworkFeeSummary = inTotal ? (
-      <>
-        <div>{`+ ${feeAmount} ${defaultToken}`}</div>
-        <div>+ {`${btcTransferFee} BTC`}</div>
-      </>
-    ) : (
-      <>
-        <div>{`${feeAmount} ${defaultToken}`}</div>
-        <div>+ {`${btcTransferFee} BTC`}</div>
-      </>
-    );
-
-    const otherNetworksFeeSummary = inTotal
-      ? `+ ${feeAmount}
-    ${defaultToken}`
-      : `${feeAmount}
-    ${defaultToken}`;
-
-    return selectedBlockchain === BITCOIN_NETWORK
-      ? bitcoinNetworkFeeSummary
-      : otherNetworksFeeSummary;
-  };
-
-  const transactionModalFee =
-    selectedBlockchain === BITCOIN_NETWORK
-      ? `${feeAmount} ${defaultToken} + ${btcTransferFee} BTC`
-      : `${feeAmount}
-  ${defaultToken}`;
-
-  const totalTransaction = (
-    <>
-      <div>{`${precisedAmount} ${
-        selectedAssetSymbol !== undefined ? selectedAssetSymbol : ""
-      }`}</div>
-      <>{feeSummary(true)}</>
-    </>
-  );
-
-  const sideChainConfirmationTime =
-    selectedBlockchain === BITCOIN_NETWORK
-      ? counterpart.translate(`field.labels.btc_withdrawal_confirmation_time`)
-      : counterpart.translate(`field.labels.hive_withdrawal_confirmation_time`);
-  const confirmationTime =
-    selectedBlockchain === HIVE_NETWORK ||
-    selectedBlockchain === BITCOIN_NETWORK
-      ? sideChainConfirmationTime
-      : counterpart.translate(`field.labels.peerplays_confirmation_time`);
-
-  const transactionDetails = (
-    <Styled.TransactionDetails>
-      <Styled.DetailsWrapper>
-        <Styled.DetailsLabelWrapper>{feeLabel}</Styled.DetailsLabelWrapper>
-        <Styled.AmountsWrapper>{feeSummary()}</Styled.AmountsWrapper>
-      </Styled.DetailsWrapper>
-      <Styled.DetailsWrapper>
-        <Styled.DetailsLabelWrapper>
-          {counterpart.translate(`field.labels.total_transaction`)}
-        </Styled.DetailsLabelWrapper>
-        <Styled.AmountsWrapper>{totalTransaction}</Styled.AmountsWrapper>
-      </Styled.DetailsWrapper>
-      <Styled.DetailsWrapper>
-        <Styled.DetailsLabelWrapper>
-          {counterpart.translate(`field.labels.withdrawal_confirmation_time`)}
-        </Styled.DetailsLabelWrapper>
-        <Styled.AmountsWrapper>{confirmationTime}</Styled.AmountsWrapper>
-      </Styled.DetailsWrapper>
-    </Styled.TransactionDetails>
-  );
+  const precisedAmount = limitByPrecision(amount, selectedAssetPrecision);
+  const transactionModalFee = useMemo(() => {
+    if (selectedBlockchain === BITCOIN_NETWORK) {
+      return `${feeAmount} ${defaultToken} + ${btcTransferFee} ${BITCOIN_ASSET_SYMBOL}`;
+    } else if (selectedBlockchain === ETHEREUM_NETWORK) {
+      return `${feeAmount} ${defaultToken} + ${ethTransferFee} ${ETHEREUM_ASSET_SYMBOL}`;
+    } else {
+      return `${feeAmount} ${defaultToken}`;
+    }
+  }, [
+    selectedBlockchain,
+    BITCOIN_NETWORK,
+    ETHEREUM_NETWORK,
+    feeAmount,
+    defaultToken,
+    btcTransferFee,
+    BITCOIN_ASSET_SYMBOL,
+    ethTransferFee,
+    ETHEREUM_ASSET_SYMBOL,
+  ]);
 
   return (
     <Form.Provider onFormFinish={handleFormFinish}>
@@ -178,7 +124,9 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
               {assets.map((asset) => {
                 return (
                   <Styled.AssetOption key={asset.id} value={asset.symbol}>
-                    {`${asset.symbol} - ${utils.getBlockchainFromSymbol(
+                    {`${
+                      asset.symbol
+                    } - ${utils.getNativeBlockchainFromAssetSymbol(
                       asset.symbol
                     )}`}
                   </Styled.AssetOption>
@@ -259,12 +207,15 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
                 `field.placeholder.enter_recipient`
               )}
               autoComplete="off"
-              disabled={selectedBlockchain === BITCOIN_NETWORK}
+              disabled={
+                selectedBlockchain === BITCOIN_NETWORK ||
+                selectedBlockchain === ETHEREUM_NETWORK
+              }
             />
           </Form.Item>
         </div>
         {selectedBlockchain === undefined ||
-        selectedBlockchain === defaultNetwork ? (
+        selectedBlockchain === DEFAULT_NETWORK ? (
           <>
             <p>{counterpart.translate(`field.comments.public_memo`)}</p>
             <Styled.MemoWrapper>
@@ -276,21 +227,42 @@ export const SendForm = ({ assetSymbol }: Props): JSX.Element => {
                 <Styled.Memo
                   placeholder={counterpart.translate(`field.placeholder.memo`)}
                   maxLength={256}
-                  disabled={selectedBlockchain !== defaultNetwork}
+                  disabled={selectedBlockchain !== DEFAULT_NETWORK}
                 />
               </Styled.MemoFormItem>
             </Styled.MemoWrapper>
           </>
         ) : (
-          <Styled.WithdrawAlertWrapper>
+          <Styled.AlertWrapper>
             <Styled.AlertIcon />
             <Styled.AlertText>
               {counterpart.translate("pages.wallet.withdraw_alert")}
             </Styled.AlertText>
-          </Styled.WithdrawAlertWrapper>
+          </Styled.AlertWrapper>
+        )}
+        {(selectedBlockchain === BITCOIN_NETWORK ||
+          selectedBlockchain === ETHEREUM_NETWORK) &&
+        !toAccount ? (
+          <Styled.AlertWrapper>
+            <Styled.AlertIcon />
+            <Styled.AlertText>
+              {counterpart.translate(
+                "field.errors.first_generate_deposit_addresses"
+              )}
+            </Styled.AlertText>
+          </Styled.AlertWrapper>
+        ) : (
+          ""
         )}
 
-        {transactionDetails}
+        <TransactionDetails
+          btcTransferFee={btcTransferFee}
+          ethTransferFee={ethTransferFee}
+          feeAmount={feeAmount}
+          precisedAmount={precisedAmount}
+          selectedAssetSymbol={selectedAssetSymbol}
+          selectedBlockchain={selectedBlockchain}
+        />
         <Styled.FormItem>
           <Styled.TransferFormButton type="primary" htmlType="submit">
             {counterpart.translate(`buttons.send`)}

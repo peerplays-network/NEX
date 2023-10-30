@@ -1,9 +1,7 @@
 //done
 import { useCallback, useEffect, useState } from "react";
 
-import { useFormDate } from "..";
-import { usePeerplaysApiContext } from "../../providers";
-import { BlockData, GlobalProperties } from "../../types";
+import { useBlockchain, useFormDate } from "..";
 
 import { UseMaintenanceResult } from "./useMaintenance.types";
 
@@ -12,27 +10,30 @@ export function useMaintenance(): UseMaintenanceResult {
   const [nextMaintenanceTime, setNextMaintenanceTime] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
-  const { dbApi } = usePeerplaysApiContext();
   const { formLocalDate } = useFormDate();
+  const { getGlobalProperties, getDynamicGlobalProperties } = useBlockchain();
 
   const getMaintenance = useCallback(async () => {
     try {
-      const blocksData: BlockData[] = await dbApi("get_objects", [["2.1.0"]]);
-      if (blocksData && blocksData.length > 0) {
-        const lastBlockData = blocksData[0];
-        const gpo: GlobalProperties = await dbApi("get_global_properties");
+      const [dgpo, gpo] = await Promise.all([
+        getDynamicGlobalProperties(),
+        getGlobalProperties(),
+      ]);
+      if (dgpo && gpo) {
         return {
           maintenanceInterval: gpo.parameters.maintenance_interval,
-          nextMaintenanceTime: formLocalDate(
-            lastBlockData.next_maintenance_time,
-            ["month", "date", "year", "time"]
-          ),
+          nextMaintenanceTime: formLocalDate(dgpo.next_maintenance_time, [
+            "month",
+            "date",
+            "year",
+            "time",
+          ]),
         };
       }
     } catch (e) {
       console.log(e);
     }
-  }, [dbApi, formLocalDate]);
+  }, [getDynamicGlobalProperties, formLocalDate, getGlobalProperties]);
 
   useEffect(() => {
     let ignore = false;

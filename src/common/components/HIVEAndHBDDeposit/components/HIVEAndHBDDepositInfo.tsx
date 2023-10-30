@@ -17,7 +17,7 @@ export const HIVEAndHBDDepositInfo = ({ infoString }: Props): JSX.Element => {
     );
     return (
       <i key={`user-${key}`}>
-        <Link href={`/user/${userName}`}>{userName}</Link>
+        <Link href={`/profile?tab=activities`}>{userName}</Link>
       </i>
     );
   };

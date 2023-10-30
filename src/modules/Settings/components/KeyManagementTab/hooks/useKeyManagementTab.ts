@@ -7,8 +7,8 @@ import { useAccount } from "../../../../../common/hooks";
 import { useUserContext } from "../../../../../common/providers";
 import {
   Account,
+  Authority,
   GeneratedKey,
-  Permissions,
   PublicKeys,
 } from "../../../../../common/types";
 import { CheckboxValueType, Form } from "../../../../../ui/src";
@@ -105,7 +105,7 @@ export function useKeyManagementTab(): UseKeyManagementTabResult {
         const privKey = keys.privKeys[role];
         const pubKey = privKey.toPublicKey().toString(defaultToken);
         if (role !== "memo") {
-          const permissions = account[role as keyof Account] as Permissions;
+          const permissions = account[role as keyof Account] as Authority;
           userKeys = permissions.key_auths.map((key_auth) => key_auth[0]);
         } else {
           userKeys = [account.options.memo_key];

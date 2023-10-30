@@ -10,7 +10,7 @@ import React, {
   useState,
 } from "react";
 
-import { ApisInstanceType, BlockData } from "../../types";
+import { ApisInstanceType, DynamicGlobalProperties } from "../../types";
 
 import { ChainStoreContextType } from "./ChainStoreProvider.types";
 
@@ -39,7 +39,7 @@ export const ChainStoreProvider = ({
   const [rpcConnectionStatus, setRpcConnectionStatus] = useState<
     string | undefined
   >("open");
-  const dynGlobalObject = useRef<BlockData>();
+  const dynGlobalObject = useRef<DynamicGlobalProperties>();
 
   const getBlockTime = useCallback(() => {
     if (dynGlobalObject.current) {
@@ -102,9 +102,9 @@ export const ChainStoreProvider = ({
 
   const updateChainStates = useCallback(async () => {
     try {
-      const blockData = await dbApi("get_objects", [["2.1.0"]]);
-      if (blockData && blockData.length > 0) {
-        dynGlobalObject.current = blockData[0] as BlockData;
+      const dgpo = await dbApi("get_objects", [["2.1.0"]]);
+      if (dgpo && dgpo.length > 0) {
+        dynGlobalObject.current = dgpo[0] as DynamicGlobalProperties;
       }
     } catch (e) {
       console.log(e);

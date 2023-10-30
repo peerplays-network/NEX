@@ -21,4 +21,6 @@ export type UseVoteTabResult = {
   dispatchTransactionMessage: Dispatch<TransactionMessageAction>;
   updateAccountFee: number | undefined;
   afterSuccessTransactionModalClose: (() => void) | undefined;
+  voteToAllSidechains: (sonAccountId: string) => void;
+  removeAllSidechainsVotes: (sonAccountId: string) => void;
 };

@@ -72,8 +72,8 @@ export const BlockDetails = ({ block }: Props): JSX.Element => {
             noData={blockDetails.witness === ""}
             title={counterpart.translate(`pages.blocks.block_details.witness`)}
             data={
-              <Link href={`/user/${blockDetails.witness}`}>
-                {blockDetails.witness}
+              <Link href={`/user/${blockDetails.witness_account_name}`}>
+                {`${blockDetails.witness_account_name} (${blockDetails.witness})`}
               </Link>
             }
             statsData={[0]}
@@ -117,6 +117,12 @@ export const BlockDetails = ({ block }: Props): JSX.Element => {
             <p>{blockDetails.nextSecret}</p>
           </Styled.BlockInfo>
         </Styled.TwoColumns>
+        <Styled.BlockInfo>
+          <Styled.BlockInfoTitle>
+            {counterpart.translate(`pages.blocks.block_details.signing_key`)}
+          </Styled.BlockInfoTitle>
+          <p>{blockDetails.signingKey}</p>
+        </Styled.BlockInfo>
         <Styled.BlockInfo>
           <Styled.BlockInfoTitle>
             {counterpart.translate(

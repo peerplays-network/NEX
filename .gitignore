@@ -47,6 +47,7 @@ yarn-error.log*
 /.scannerwork
 /.swc
 test-report.xml
+junit.xml
 
 # tradingView chart
 # public/static/charting_library/
