@@ -1,5 +1,5 @@
 import counterpart from "counterpart";
-import { cloneDeep, sum, uniq } from "lodash";
+import { cloneDeep, uniq } from "lodash";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import {
@@ -201,7 +201,7 @@ export function useVoteTab({
       )[0][0];
       const votesAsset = formAssetBalance(
         defaultAsset,
-        Number(sum(member.total_votes.map((member) => member[1])))
+        member.total_votes.map((member) => member[1]).reduce((a, b) => a + b, 0)
       );
       const activeChains: string[] = [];
       if (actives.bitcoin) activeChains.push(Sidechain.BITCOIN);
