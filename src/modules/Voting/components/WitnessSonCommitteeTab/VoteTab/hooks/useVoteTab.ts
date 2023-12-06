@@ -324,9 +324,11 @@ export function useVoteTab({
     allMembersIds,
     fullAccount,
   ]);
+
   const [localApprovedVotesIds, setLocalApprovedVotesIds] = useState<string[]>(
     tabServerApprovedVotesIds
   );
+
   const [prevTabServerApprovedVotesIds, setPrevTabServerApprovedVotesIds] =
     useState<string[]>([]);
   if (!isArrayEqual(prevTabServerApprovedVotesIds, tabServerApprovedVotesIds)) {
@@ -420,7 +422,7 @@ export function useVoteTab({
           {
             new_options,
             extensions: {
-              value: { update_last_voting_time: true },
+              update_last_voting_time: true,
             },
           },
           id
@@ -430,10 +432,10 @@ export function useVoteTab({
     },
     [tab, fullAccount, id, buildUpdateAccountTransaction]
   );
+
   const calculateUpdateAccountFee = useCallback(
     async (localApprovedVotesIds: string[]) => {
       const trx = createUpdateAccountTrx(localApprovedVotesIds);
-
       if (trx !== undefined) {
         const fee = await getTrxFee([trx]);
         if (fee !== undefined) {
@@ -443,6 +445,7 @@ export function useVoteTab({
     },
     [createUpdateAccountTrx, getTrxFee]
   );
+
   const calculateAndSetFee = useCallback(
     async (approvedVotesIds: string[]) => {
       const fee = await calculateUpdateAccountFee(approvedVotesIds);
@@ -462,6 +465,7 @@ export function useVoteTab({
     tabServerApprovedVotesIds,
     calculateAndSetFee,
   ]);
+
   const addVote = useCallback(
     (voteId: string) => {
       const newLocalApprovedVotesIds = [...localApprovedVotesIds, voteId];
@@ -489,6 +493,7 @@ export function useVoteTab({
       afterCloseTransactionModal.current,
     ]
   );
+
   const removeVote = useCallback(
     (voteId: string) => {
       const newLocalApprovedVotesIds = localApprovedVotesIds.filter(
@@ -597,6 +602,7 @@ export function useVoteTab({
       afterCloseTransactionModal.current,
     ]
   );
+
   // submit changes
   const validateVoting = useCallback(
     (votingFee: number) => {
@@ -616,6 +622,7 @@ export function useVoteTab({
     },
     [assets, defaultToken, totalGpos]
   );
+
   const handleVoting = useCallback(
     async (signerKey: SignerKey) => {
       const votingErrorMessage = validateVoting(updateAccountFee as number);
