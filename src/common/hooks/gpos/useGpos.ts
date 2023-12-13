@@ -46,7 +46,7 @@ export function useGpos(): UseGposResult {
           if (asset) {
             const totalBlockchainGPOS =
               rawGposInfo.total_amount / 10 ** asset.precision;
-            const vestingFactor = parseInt(rawGposInfo.vesting_factor);
+            const vestingFactor = parseFloat(rawGposInfo.vesting_factor);
             const qualifiedReward = utils.trimNum(vestingFactor * 100 || 0, 2);
             const performance = getPerformanceString(qualifiedReward);
             const gposInfo: GPOSInfo = {
