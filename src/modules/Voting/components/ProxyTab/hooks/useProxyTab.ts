@@ -95,7 +95,7 @@ export function useProxyTab({
       const trx = buildUpdateAccountTransaction(
         {
           new_options,
-          extensions: { value: { update_last_voting_time: true } },
+          extensions: { update_last_voting_time: true },
         },
         id
       );
