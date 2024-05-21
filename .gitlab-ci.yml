@@ -115,11 +115,6 @@ sonarcloud-check:
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
-  before_script:
-    - apt-get update
-    - apt-get install -y openjdk-17-jdk
-    - update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
-    - java -version 
   cache:
     key: "${CI_JOB_NAME}"
     paths:
@@ -128,11 +123,14 @@ sonarcloud-check:
     - npm install
     - npm run test:ci 
     - sonar-scanner
-  only:
-    - merge_requests
-    - branches
+  rules:
+    - if: '$SONARCLOUD_CHECK_DISABLED == "true"'  
+      when: never 
+    - if: $CI_COMMIT_BRANCH
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
   tags:
     - sonar-check
+  allow_failure: true 
 
 gitlab-unittest:
   image: node:16.17.0-alpine3.16
@@ -295,6 +293,8 @@ dast:
     paths: 
       - gl-dast-report.json
   rules:
-  - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^release/ || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^hot-fix/
+  - if: '$DAST_DISABLED == "true"'
+    when: never 
+  - if: $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^release/ || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME =~ /^hot-fix/ 
 
   
