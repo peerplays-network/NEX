@@ -99,7 +99,7 @@ docker_build:
   image: docker:stable
   stage: build
   services:
-    - docker:19.03.12-dind
+    - docker:24.0.5-dind
   variables:
     IMAGE: $CI_REGISTRY_IMAGE/$CI_COMMIT_REF_SLUG:$CI_COMMIT_SHA
   script:
