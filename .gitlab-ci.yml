@@ -115,6 +115,11 @@ sonarcloud-check:
   image:
     name: sonarsource/sonar-scanner-cli:latest
     entrypoint: [""]
+  before_script:
+    - apt-get update
+    - apt-get install -y openjdk-17-jdk
+    - update-alternatives --set java /usr/lib/jvm/java-17-openjdk-amd64/bin/java
+    - java -version 
   cache:
     key: "${CI_JOB_NAME}"
     paths:
